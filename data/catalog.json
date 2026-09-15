@@ -1,0 +1,218 @@
+{
+  "company": {
+    "name": "Opaline Courtage",
+    "description": "Cabinet de courtage fictif. Assureurs, produits, taux et contrats sont inventés pour la démonstration."
+  },
+  "insurers": [
+    { "code": "NORDALE", "label": "Nordale Assurances" },
+    { "code": "VERDANCE", "label": "Mutuelle Verdance" },
+    { "code": "CALVANE", "label": "Calvane Prévoyance" }
+  ],
+  "perimeters": [
+    {
+      "code": "SANTE_INDIV",
+      "label": "Santé individuelle",
+      "description": "Complémentaires santé des particuliers. Rapprochement au contrat, exposition en mois, régularisation des changements de prime.",
+      "insurer": "NORDALE",
+      "line_of_business": "SANTE",
+      "active": true,
+      "key_strategy": "CONTRACT",
+      "exposure_base": "MONTHS_12",
+      "rate_source": "REFERENTIAL",
+      "tariff_regularisation": true,
+      "seniority_months": 16,
+      "old_contract_threshold_years": 1,
+      "max_future_effect_months": null,
+      "rate_overrides": [
+        { "guarantee": "RENFORT-DENTAIRE", "rate_year_1": 0.20, "reason": "Renfort dentaire optionnel commissionné à taux réduit" }
+      ],
+      "product_rules": [],
+      "linear": {
+        "excluded_movement_prefixes": ["A", "E"],
+        "excluded_premium_types": [],
+        "excluded_products": [],
+        "first_year_filter": true
+      }
+    },
+    {
+      "code": "PREVOYANCE_TNS",
+      "label": "Prévoyance des indépendants",
+      "description": "Indemnités journalières et capital décès des travailleurs non salariés. Rapprochement à la garantie de chaque bénéficiaire.",
+      "insurer": "CALVANE",
+      "line_of_business": "PREVOYANCE",
+      "active": true,
+      "key_strategy": "GUARANTEE",
+      "exposure_base": "DAYS_365",
+      "rate_source": "REFERENTIAL",
+      "tariff_regularisation": false,
+      "seniority_months": 16,
+      "old_contract_threshold_years": 1,
+      "max_future_effect_months": null,
+      "rate_overrides": [],
+      "product_rules": [],
+      "linear": {
+        "excluded_movement_prefixes": ["A", "E"],
+        "excluded_premium_types": ["P2"],
+        "excluded_products": [],
+        "first_year_filter": true
+      }
+    },
+    {
+      "code": "ANIMAUX",
+      "label": "Santé animale",
+      "description": "Assurance chiens et chats. Exposition calculée jusqu'à la date anniversaire, portefeuille repris identifié par son numéro de contrat.",
+      "insurer": "VERDANCE",
+      "line_of_business": "ANIMAUX",
+      "active": true,
+      "key_strategy": "CONTRACT_GUARANTEE",
+      "exposure_base": "ANNIVERSARY",
+      "rate_source": "REFERENTIAL",
+      "tariff_regularisation": true,
+      "seniority_months": 16,
+      "old_contract_threshold_years": 1,
+      "max_future_effect_months": null,
+      "rate_overrides": [],
+      "product_rules": [
+        { "contract_prefix": "MIG", "product": "VA-COMPAGNON-REPRIS", "reason": "Contrats repris d'un autre courtier" }
+      ],
+      "linear": {
+        "excluded_movement_prefixes": ["A", "E"],
+        "excluded_premium_types": ["P2"],
+        "excluded_products": [],
+        "first_year_filter": true
+      }
+    },
+    {
+      "code": "EMPRUNTEUR",
+      "label": "Assurance emprunteur",
+      "description": "Assurance de prêt immobilier. Taux transmis par l'assureur, taux négociés par segment de clientèle, exposition sur 24 mois.",
+      "insurer": "NORDALE",
+      "line_of_business": "EMPRUNTEUR",
+      "active": true,
+      "key_strategy": "CONTRACT",
+      "exposure_base": "MONTHS_24",
+      "rate_source": "INSURER_FILE",
+      "tariff_regularisation": false,
+      "seniority_months": 25,
+      "old_contract_threshold_years": 2,
+      "max_future_effect_months": null,
+      "rate_overrides": [
+        { "segment": "PRIMO", "rate_year_1": 0.30, "reason": "Primo-accédants : taux négocié" },
+        { "segment": "RACHAT", "rate_year_1": 0.42, "reason": "Changement d'assurance après rachat de crédit" }
+      ],
+      "product_rules": [],
+      "linear": {
+        "excluded_movement_prefixes": ["A", "E"],
+        "excluded_premium_types": [],
+        "excluded_products": ["NE-EMPRUNT-FLEX"],
+        "first_year_filter": true
+      }
+    },
+    {
+      "code": "DEPENDANCE",
+      "label": "Autonomie senior",
+      "description": "Assurance perte d'autonomie. Rapprochement à la personne, contrats à effet trop lointain écartés, linéaire dès la première année.",
+      "insurer": "CALVANE",
+      "line_of_business": "DEPENDANCE",
+      "active": true,
+      "key_strategy": "PERSON_GUARANTEE",
+      "exposure_base": "DAYS_365_25",
+      "rate_source": "REFERENTIAL",
+      "tariff_regularisation": false,
+      "seniority_months": null,
+      "old_contract_threshold_years": 1,
+      "max_future_effect_months": 4,
+      "rate_overrides": [],
+      "product_rules": [],
+      "linear": {
+        "excluded_movement_prefixes": ["A", "E"],
+        "excluded_premium_types": [],
+        "excluded_products": [],
+        "first_year_filter": false
+      }
+    },
+    {
+      "code": "OBSEQUES",
+      "label": "Obsèques",
+      "description": "Périmètre arrêté : conservé dans le paramétrage pour l'historique, plus aucun calcul.",
+      "insurer": "VERDANCE",
+      "line_of_business": "PREVOYANCE",
+      "active": false,
+      "key_strategy": "CONTRACT",
+      "exposure_base": "MONTHS_12",
+      "rate_source": "REFERENTIAL",
+      "tariff_regularisation": false,
+      "seniority_months": 16,
+      "old_contract_threshold_years": 1,
+      "max_future_effect_months": null
+    }
+  ],
+  "products": [
+    {
+      "code": "NS-ESSENTIEL", "label": "Nordale Santé Essentiel", "perimeter": "SANTE_INDIV",
+      "year_1": [
+        { "rate": 0.80, "start": "2018-01-01", "end": "2023-12-31" },
+        { "rate": 0.95, "start": "2024-01-01" }
+      ],
+      "year_2_plus": [{ "rate": 0.10, "start": "2018-01-01" }]
+    },
+    {
+      "code": "NS-CONFORT", "label": "Nordale Santé Confort", "perimeter": "SANTE_INDIV",
+      "year_1": [{ "rate": 1.20, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.12, "start": "2018-01-01" }]
+    },
+    {
+      "code": "NS-SENIOR", "label": "Nordale Santé Senior", "perimeter": "SANTE_INDIV",
+      "year_1": [{ "rate": 0.60, "start": "2022-01-01" }],
+      "year_2_plus": [{ "rate": 0.08, "start": "2022-01-01" }]
+    },
+    {
+      "code": "CP-TNS-INDEMNITES", "label": "Calvane Indemnités TNS", "perimeter": "PREVOYANCE_TNS",
+      "year_1": [{ "rate": 0.50, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.15, "start": "2018-01-01" }]
+    },
+    {
+      "code": "CP-TNS-DECES", "label": "Calvane Capital Décès TNS", "perimeter": "PREVOYANCE_TNS",
+      "year_1": [
+        { "rate": 0.40, "start": "2018-01-01", "end": "2024-06-30" },
+        { "rate": 0.45, "start": "2024-07-01" }
+      ],
+      "year_2_plus": [{ "rate": 0.15, "start": "2018-01-01" }]
+    },
+    {
+      "code": "VA-COMPAGNON", "label": "Verdance Compagnon", "perimeter": "ANIMAUX",
+      "year_1": [{ "rate": 0.35, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.10, "start": "2018-01-01" }]
+    },
+    {
+      "code": "VA-COMPAGNON-PLUS", "label": "Verdance Compagnon Plus", "perimeter": "ANIMAUX",
+      "year_1": [{ "rate": 0.45, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.12, "start": "2018-01-01" }]
+    },
+    {
+      "code": "VA-COMPAGNON-REPRIS", "label": "Verdance Compagnon (portefeuille repris)", "perimeter": "ANIMAUX",
+      "year_1": [{ "rate": 0.20, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.10, "start": "2018-01-01" }]
+    },
+    {
+      "code": "NE-EMPRUNT-CLASSIQUE", "label": "Nordale Emprunteur Classique", "perimeter": "EMPRUNTEUR",
+      "year_1": [{ "rate": 0.35, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.05, "start": "2018-01-01" }]
+    },
+    {
+      "code": "NE-EMPRUNT-FLEX", "label": "Nordale Emprunteur Flex", "perimeter": "EMPRUNTEUR",
+      "year_1": [{ "rate": 0.40, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.05, "start": "2018-01-01" }]
+    },
+    {
+      "code": "CA-AUTONOMIE", "label": "Calvane Autonomie Senior", "perimeter": "DEPENDANCE",
+      "year_1": [{ "rate": 0.70, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.05, "start": "2018-01-01" }]
+    },
+    {
+      "code": "VO-OBSEQUES", "label": "Verdance Obsèques", "perimeter": "OBSEQUES",
+      "year_1": [{ "rate": 0.25, "start": "2018-01-01" }],
+      "year_2_plus": [{ "rate": 0.05, "start": "2018-01-01" }]
+    }
+  ]
+}
