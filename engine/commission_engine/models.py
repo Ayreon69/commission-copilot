@@ -85,6 +85,15 @@ EXCLUSION_LABELS: dict[ExclusionReason, str] = {
 }
 
 
+RULE_LABELS: dict[str, str] = {
+    "R-P1": "Précompte d'une affaire nouvelle",
+    "R-RP1": "Reprise totale d'un contrat sans effet",
+    "R-RP2": "Reprise partielle d'un contrat résilié",
+    "R-REG": "Régularisation d'un changement de prime",
+    "R-L1": "Commission linéaire",
+}
+
+
 @dataclass(frozen=True)
 class ContractRecord:
     """Une ligne du bordereau mensuel de contrats envoyé par l'assureur."""

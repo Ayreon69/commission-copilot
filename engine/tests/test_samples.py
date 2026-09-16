@@ -8,6 +8,7 @@ import pytest
 
 from commission_engine import Catalog, ExclusionReason, compute_month
 from commission_engine.csv_io import read_contracts, read_premiums
+from commission_engine.models import RULE_LABELS
 
 ENGINE_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = ENGINE_DIR.parent / "data"
@@ -64,6 +65,15 @@ def test_scenarios_produce_expected_outcomes(code):
     found = outcomes(code)
     assert {f"{prefix}-{name}": found.get(f"{prefix}-{name}") for name in expected} == \
         {f"{prefix}-{name}": str(value) for name, value in expected.items()}
+
+
+@pytest.mark.parametrize("code", sorted(generator.PROFILES))
+def test_every_rule_used_has_a_label(code):
+    folder = SAMPLES_DIR / code
+    result = compute_month(CATALOG, code, "2026-03", read_contracts(folder / "contracts_2026-03.csv"),
+                           read_contracts(folder / "contracts_2026-02.csv"),
+                           read_premiums(folder / "premiums_2026-03.csv"))
+    assert {line.rule_id for line in result.lines} <= set(RULE_LABELS)
 
 
 @pytest.mark.parametrize("code", sorted(generator.PROFILES))
