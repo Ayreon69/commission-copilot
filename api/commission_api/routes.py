@@ -48,10 +48,17 @@ def _service(request: Request) -> CommissionService:
 
 
 def _assistant(request: Request) -> Assistant:
+    """Assistant configuré, après décompte de la question dans les limites de débit de la démo."""
     assistant: Assistant | None = request.app.state.assistant
     if assistant is None:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, NO_KEY_MESSAGE)
+    request.app.state.rate_limiter.acquire(_visitor(request))
     return assistant
+
+
+def _visitor(request: Request) -> str:
+    # Derrière un proxy, uvicorn --proxy-headers renseigne ici l'adresse réelle du visiteur.
+    return request.client.host if request.client else "inconnu"
 
 
 @router.get("/health", response_model=HealthOut, tags=["système"])
@@ -80,13 +87,18 @@ def get_sample_contract(perimeter: str, contract_id: str, request: Request) -> S
     return _service(request).sample_contract(perimeter, contract_id)
 
 
-@router.post("/chat", response_model=ChatResponse, tags=["assistant"])
+RATE_LIMIT_RESPONSE = {429: {"description": "Limite de débit de la démo atteinte (en-tête Retry-After) "
+                                            "ou quota du fournisseur de modèle épuisé"}}
+
+
+@router.post("/chat", response_model=ChatResponse, tags=["assistant"], responses=RATE_LIMIT_RESPONSE)
 def chat(body: ChatRequest, request: Request) -> ChatResponse:
     return chat_response(_assistant(request).answer(body.messages))
 
 
 @router.post("/chat/stream", tags=["assistant"], response_class=StreamingResponse,
-             responses={200: {"content": {"text/event-stream": {}}, "description": STREAM_DESCRIPTION}})
+             responses={200: {"content": {"text/event-stream": {}}, "description": STREAM_DESCRIPTION},
+                        **RATE_LIMIT_RESPONSE})
 def chat_stream(body: ChatRequest, request: Request) -> StreamingResponse:
     assistant = _assistant(request)
     return StreamingResponse(_stream_events(assistant, body), media_type="text/event-stream",

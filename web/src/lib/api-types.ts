@@ -741,6 +741,13 @@ export interface operations {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
+            /** @description Limite de débit de la démo atteinte (en-tête Retry-After) ou quota du fournisseur de modèle épuisé */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     chat_stream_api_chat_stream_post: {
@@ -781,6 +788,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+            /** @description Limite de débit de la démo atteinte (en-tête Retry-After) ou quota du fournisseur de modèle épuisé */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

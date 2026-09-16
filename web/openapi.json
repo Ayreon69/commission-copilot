@@ -214,6 +214,9 @@
               }
             }
           },
+          "429": {
+            "description": "Limite de débit de la démo atteinte (en-tête Retry-After) ou quota du fournisseur de modèle épuisé"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -250,6 +253,9 @@
             "content": {
               "text/event-stream": {}
             }
+          },
+          "429": {
+            "description": "Limite de débit de la démo atteinte (en-tête Retry-After) ou quota du fournisseur de modèle épuisé"
           },
           "422": {
             "description": "Validation Error",

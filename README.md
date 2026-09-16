@@ -88,7 +88,9 @@ commission-copilot/
 │   └── samples/                Bordereaux fictifs (5 périmètres, février et mars 2026)
 ├── knowledge/
 │   └── regles-metier.md        Règles métier en langage clair, base de connaissance de l'assistant
-└── docs/
+├── docs/
+├── .github/workflows/ci.yml    Intégration continue
+└── docker-compose.yml          API et interface en conteneurs
 ```
 
 ## Démarrage rapide
@@ -133,6 +135,12 @@ npm install
 npm run dev                                                # http://localhost:3000
 ```
 
+**Avec Docker** (API et interface d'un coup)
+
+```bash
+docker compose up --build                                  # http://localhost:3000, API sur :8000
+```
+
 **Évaluation**
 
 ```bash
@@ -152,6 +160,8 @@ python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul
 - **Interface typée depuis l'API** : les types TypeScript de l'interface Next.js sont générés à partir du schéma OpenAPI produit par les modèles pydantic.
 - **Boucle d'outils bornée**, avec une trace de chaque appel renvoyée au client.
 - **Indépendant du fournisseur de modèle.** Un client compatible OpenAI, Gemini par défaut (plan gratuit), et une chaîne de repli qui bascule sur le modèle suivant quand un modèle est saturé ou à court de quota.
+- **Démo publique protégée** : questions à l'assistant limitées par visiteur (par minute et par jour) et au total sur la journée, pour rester sous le quota gratuit du modèle. Le simulateur, qui n'appelle pas de modèle, reste libre.
+- **Intégration continue** : lint et tests du moteur et de l'API, vérification que le schéma OpenAPI et les types TypeScript générés sont à jour, build de l'interface, construction des images Docker et contrôle de santé de l'API.
 - **Tests sans réseau** : le modèle de langage est remplacé par un modèle scripté, ce qui permet de tester la boucle d'outils, la gestion des erreurs et le contrôle des montants.
 - **Données d'exemple générées de façon déterministe**, avec des contrats scénarios dont le nom décrit le cas illustré.
 
@@ -162,5 +172,5 @@ python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul
 - [x] **3. Jeu d'évaluation des réponses de l'assistant et score de fiabilité**
 - [x] **4. Citations des règles, contrôle des produits cités, streaming**
 - [x] **5. Interface Next.js : chat, panneau « sous le capot », simulateur de contrat**
-- [ ] 6. CI, conteneurisation, limitation de débit de la démo publique
+- [x] **6. CI, conteneurisation, limitation de débit de la démo publique**
 - [ ] 7. Démo en ligne et vidéo de présentation

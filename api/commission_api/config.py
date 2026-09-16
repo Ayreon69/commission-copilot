@@ -8,6 +8,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from .ratelimit import RateLimits
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
@@ -25,6 +27,7 @@ class Settings:
     knowledge_path: Path = REPO_ROOT / "knowledge" / "regles-metier.md"
     cors_origins: tuple[str, ...] = ("http://localhost:3000",)
     max_tool_rounds: int = 4
+    rate_limits: RateLimits = RateLimits()
 
     @property
     def catalog_path(self) -> Path:
@@ -47,8 +50,17 @@ class Settings:
             knowledge_path=(Path(os.environ["KNOWLEDGE_PATH"]) if os.environ.get("KNOWLEDGE_PATH")
                             else defaults.knowledge_path),
             cors_origins=_split(os.environ.get("CORS_ORIGINS")) or defaults.cors_origins,
+            rate_limits=RateLimits(
+                per_minute=_int(os.environ.get("CHAT_LIMIT_PER_MINUTE"), defaults.rate_limits.per_minute),
+                per_day=_int(os.environ.get("CHAT_LIMIT_PER_DAY"), defaults.rate_limits.per_day),
+                global_per_day=_int(os.environ.get("CHAT_LIMIT_GLOBAL_PER_DAY"), defaults.rate_limits.global_per_day),
+            ),
         )
 
 
 def _split(value: str | None) -> tuple[str, ...]:
     return tuple(item.strip() for item in (value or "").split(",") if item.strip())
+
+
+def _int(value: str | None, default: int) -> int:
+    return int(value) if value and value.strip() else default

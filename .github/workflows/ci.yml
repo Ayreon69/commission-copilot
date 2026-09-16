@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: Moteur
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: python -m pytest -q
+
+  api:
+    name: API et jeu d'évaluation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ../engine -e ".[dev]"
+      - run: ruff check .
+      # Aucun appel réseau : le modèle de langage est remplacé par un modèle scripté.
+      - run: python -m pytest -q
+      - name: Schéma OpenAPI à jour
+        run: |
+          python scripts/export_openapi.py
+          git diff --exit-code -- ../web/openapi.json
+
+  web:
+    name: Interface
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Types générés à jour
+        run: |
+          npm run types
+          git diff --exit-code -- src/lib/api-types.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+
+  docker:
+    name: Images Docker
+    runs-on: ubuntu-latest
+    needs: [engine, api, web]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build
+      - name: Démarrage et santé de l'API
+        run: |
+          docker compose up -d --wait api
+          curl --fail --silent http://localhost:8000/api/health
+          docker compose down

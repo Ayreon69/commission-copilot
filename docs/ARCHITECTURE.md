@@ -85,6 +85,27 @@ Les fragments d'appels d'outils reçus du fournisseur sont recollés, arguments 
 
 La boucle d'outils est bornée (4 tours par défaut). Au dernier tour, le modèle ne reçoit plus d'outils et doit conclure. Chaque appel d'outil (arguments, résultat, succès) est renvoyé au client pour le panneau « sous le capot ».
 
+## Démo publique : limitation de débit
+
+Le plan gratuit du modèle impose un quota journalier partagé par tous les visiteurs. Les questions à l'assistant (`/api/chat` et `/api/chat/stream`) sont donc limitées, en mémoire, avec des fenêtres glissantes :
+
+| Limite | Défaut | Variable |
+|---|---|---|
+| Par visiteur, par minute | 6 | `CHAT_LIMIT_PER_MINUTE` |
+| Par visiteur, par jour | 60 | `CHAT_LIMIT_PER_DAY` |
+| Tous visiteurs, par jour | 800 | `CHAT_LIMIT_GLOBAL_PER_DAY` |
+
+Au-delà, l'API répond 429 avec un en-tête `Retry-After`, avant tout appel au modèle. Une question refusée ou invalide n'est pas décomptée. Le simulateur et le paramétrage ne sont pas limités : ils n'appellent que le moteur.
+
+Limites assumées : le compteur vit dans un seul processus (il repart de zéro au redémarrage et ne se partage pas entre plusieurs instances), et le visiteur est identifié par son adresse IP telle que transmise par le proxy de l'hébergeur (`uvicorn --proxy-headers`). Exposée sans proxy, l'API laisserait un client falsifier `X-Forwarded-For` pour contourner la limite par visiteur ; la limite globale protège le quota dans tous les cas. Pour plusieurs instances, le compteur passerait dans Redis.
+
+## Conteneurs et intégration continue
+
+- `api/Dockerfile` : Python 3.11 slim, moteur et API installés, données et règles métier copiées, utilisateur non root, contrôle de santé sur `/api/health`. Le port suit `PORT`, comme l'attendent la plupart des hébergeurs.
+- `web/Dockerfile` : build Next.js en sortie `standalone`, image d'exécution Node sans `node_modules` complet. `NEXT_PUBLIC_API_URL` est fixée à la construction, car c'est le navigateur qui appelle l'API.
+- `docker-compose.yml` : les deux services, la clé lue dans `.env`.
+- `.github/workflows/ci.yml` : moteur (ruff, pytest), API (ruff, pytest sans réseau, schéma OpenAPI à jour), interface (types générés à jour, typecheck, lint, build), puis construction des images et démarrage de l'API.
+
 ## Points d'entrée HTTP
 
 | Méthode | Route | Rôle |

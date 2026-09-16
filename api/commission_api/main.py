@@ -15,6 +15,7 @@ from .assistant.llm import FallbackLLM, LLMClient, LLMError, OpenAICompatibleCli
 from .assistant.prompt import build_system_prompt
 from .assistant.tools import Toolbox
 from .config import Settings
+from .ratelimit import RateLimitedError, RateLimiter
 from .routes import QUOTA_MESSAGE, UNAVAILABLE_MESSAGE, router
 from .services import CommissionService, InvalidRequestError, NotFoundError
 
@@ -47,9 +48,10 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
         description="Moteur de calcul des commissions de courtage et assistant conversationnel. Données fictives.",
     )
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.cors_origins), allow_methods=["GET", "POST"],
-                       allow_headers=["Content-Type"])
+                       allow_headers=["Content-Type"], expose_headers=["Retry-After"])
     app.state.service = service
     app.state.assistant = assistant
+    app.state.rate_limiter = RateLimiter(settings.rate_limits)
     app.include_router(router)
 
     @app.get("/", include_in_schema=False)
@@ -63,6 +65,11 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     @app.exception_handler(InvalidRequestError)
     async def _invalid(_: Request, exc: InvalidRequestError) -> JSONResponse:
         return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+    @app.exception_handler(RateLimitedError)
+    async def _rate_limited(_: Request, exc: RateLimitedError) -> JSONResponse:
+        return JSONResponse(status_code=429, content={"detail": str(exc)},
+                            headers={"Retry-After": str(exc.retry_after)})
 
     @app.exception_handler(QuotaExceededError)
     async def _quota_exceeded(_: Request, exc: QuotaExceededError) -> JSONResponse:
