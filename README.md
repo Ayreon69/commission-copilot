@@ -1,5 +1,7 @@
 # Commission Copilot
 
+[![CI](https://github.com/Ayreon69/commission-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Ayreon69/commission-copilot/actions/workflows/ci.yml)
+
 Assistant pour comprendre la rémunération d'un cabinet de courtage en assurance. Il combine **un moteur de calcul
 déterministe**, qui chiffre les commissions, et **un assistant conversationnel**, qui explique les règles et
 fait appel au moteur dès qu'il faut un chiffre.
