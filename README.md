@@ -78,6 +78,7 @@ commission-copilot/
 │   │   ├── routes.py           Points d'entrée HTTP
 │   │   └── assistant/          Boucle d'outils, définitions d'outils, prompt, contrôle des montants
 │   └── tests/                  Tests avec un modèle de langage scripté (aucun appel réseau)
+├── web/                        Interface Next.js : assistant en streaming, panneau « Sous le capot », simulateur
 ├── evals/                      Évaluation de l'assistant
 │   ├── dataset.yaml            27 questions de référence et leurs vérifications
 │   ├── run.py, report.py       Exécution par modèle et rapport comparatif
@@ -124,6 +125,14 @@ Exemple d'appel :
 curl -X POST http://localhost:8000/api/chat -H "Content-Type: application/json" -d "{\"messages\": [{\"role\": \"user\", \"content\": \"Pourquoi le contrat SI-RESILIE donne-t-il une reprise ?\"}]}"
 ```
 
+**Interface** (API lancée en parallèle)
+
+```bash
+cd web
+npm install
+npm run dev                                                # http://localhost:3000
+```
+
 **Évaluation**
 
 ```bash
@@ -140,6 +149,7 @@ python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul
 - **Garde-fous sur les chiffres** : consigne du prompt, montants obtenus uniquement par les outils, valeurs qui changent le taux imposées par énumération, et contrôle a posteriori de chaque réponse (montants sans source, règles et produits inexistants).
 - **Citations vérifiables** : chaque réponse liste les règles citées et indique si le moteur les a réellement appliquées.
 - **Streaming Server-Sent Events** : outils lancés, résultats du moteur et texte arrivent au fil de l'eau.
+- **Interface typée depuis l'API** : les types TypeScript de l'interface Next.js sont générés à partir du schéma OpenAPI produit par les modèles pydantic.
 - **Boucle d'outils bornée**, avec une trace de chaque appel renvoyée au client.
 - **Indépendant du fournisseur de modèle.** Un client compatible OpenAI, Gemini par défaut (plan gratuit), et une chaîne de repli qui bascule sur le modèle suivant quand un modèle est saturé ou à court de quota.
 - **Tests sans réseau** : le modèle de langage est remplacé par un modèle scripté, ce qui permet de tester la boucle d'outils, la gestion des erreurs et le contrôle des montants.
@@ -151,6 +161,6 @@ python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul
 - [x] **2. API du moteur et appel d'outils par le LLM**
 - [x] **3. Jeu d'évaluation des réponses de l'assistant et score de fiabilité**
 - [x] **4. Citations des règles, contrôle des produits cités, streaming**
-- [ ] 5. Interface Next.js : chat, panneau « sous le capot », simulateur de contrat
+- [x] **5. Interface Next.js : chat, panneau « sous le capot », simulateur de contrat**
 - [ ] 6. CI, conteneurisation, limitation de débit de la démo publique
 - [ ] 7. Démo en ligne et vidéo de présentation

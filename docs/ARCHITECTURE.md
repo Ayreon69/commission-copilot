@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-    U[Utilisateur] --> W["Interface Next.js<br/>(étape 5)"]
+    U[Utilisateur] --> W["Interface Next.js"]
     W -->|POST /api/chat| API[API FastAPI]
     W -->|POST /api/simulate| API
     API --> AS[Assistant<br/>boucle d'outils]

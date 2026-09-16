@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+/* Direction visuelle : le bordereau. Papier, encre, filets de registre ; deux accents seulement,
+   le vert des commissions perçues et le vermillon des reprises et des alertes. */
+:root {
+  --paper: #f2ede2;
+  --paper-deep: #e7dfcd;
+  --card: #fbf8f1;
+  --ink: #1c1a15;
+  --ink-soft: #5d574a;
+  --ink-faint: #8e8676;
+  --rule: #d8cdb7;
+  --green: #1d5a3c;
+  --green-soft: #dde8dc;
+  --vermilion: #b8391b;
+  --vermilion-soft: #f5ddd2;
+  --ochre: #9a6410;
+  --ochre-soft: #f1e2c2;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-vermilion: var(--vermilion);
+  --color-vermilion-soft: var(--vermilion-soft);
+  --color-ochre: var(--ochre);
+  --color-ochre-soft: var(--ochre-soft);
+  --font-display: var(--font-instrument-serif);
+  --font-sans: var(--font-hanken-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-hanken-grotesk), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Grain du papier */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0.35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: var(--ochre-soft);
+  color: var(--ink);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bord perforé des bordereaux */
+.perforated {
+  background-image: radial-gradient(circle at 6px 50%, var(--paper) 3.5px, transparent 4px);
+  background-size: 16px 12px;
+  background-repeat: repeat-x;
+  height: 12px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.4) rotate(-7deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-2deg);
+  }
+}
+
+.stamp {
+  animation: stamp 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.caret::after {
+  content: "▍";
+  margin-left: 1px;
+  color: var(--vermilion);
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes scan {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.scanning {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanning::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ochre) 18%, transparent), transparent);
+  animation: scan 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .stamp,
+  .scanning::after,
+  .caret::after {
+    animation: none;
+  }
+}
+
+/* Réponses de l'assistant (markdown) */
+.prose-ledger > * + * {
+  margin-top: 0.7em;
+}
+
+.prose-ledger strong {
+  font-weight: 650;
+}
+
+.prose-ledger ul,
+.prose-ledger ol {
+  padding-left: 1.2em;
+}
+
+.prose-ledger ul {
+  list-style: "— ";
+}
+
+.prose-ledger ol {
+  list-style: decimal;
+}
+
+.prose-ledger li + li {
+  margin-top: 0.25em;
+}
+
+.prose-ledger code {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.82em;
+  background: var(--paper-deep);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-variant-numeric: tabular-nums;
+}
+
+.prose-ledger table {
+  width: 100%;
+  font-size: 0.9em;
+  border-collapse: collapse;
+}
+
+.prose-ledger th,
+.prose-ledger td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.3em 0.5em;
+  text-align: left;
+}
