@@ -35,6 +35,7 @@ class AssistantAnswer:
     content: str
     tool_calls: tuple[ToolTrace, ...]
     unverified_amounts: tuple[str, ...]
+    model: str  # modèle qui a produit la réponse finale (il peut changer en cours de route en cas de repli)
 
 
 class Assistant:
@@ -54,17 +55,19 @@ class Assistant:
         messages: list[dict[str, Any]] = [{"role": "system", "content": self.system_prompt}]
         messages += [{"role": message.role, "content": message.content} for message in history]
         traces: list[ToolTrace] = []
+        answered_by = self.llm.model
 
         for round_index in range(self.max_tool_rounds + 1):
             # Au dernier tour, plus d'outils : le modèle doit conclure avec les résultats déjà obtenus.
             tools = self.toolbox.definitions if round_index < self.max_tool_rounds else []
             reply = self.llm.complete(messages, tools)
+            answered_by = reply.model or answered_by
             if not reply.tool_calls:
-                return self._finish(reply.content, traces, history)
+                return self._finish(reply.content, traces, history, answered_by)
             if not tools:
                 break  # le modèle réclame encore des outils alors qu'ils ne lui sont plus proposés
 
-            messages.append(_assistant_message(reply.content, reply.tool_calls))
+            messages.append(reply.raw_message or _assistant_message(reply.content, reply.tool_calls))
             for call in reply.tool_calls:
                 trace = self._run(call)
                 traces.append(trace)
@@ -76,7 +79,7 @@ class Assistant:
                 })
 
         logger.warning("Boucle d'outils interrompue après %d tours", self.max_tool_rounds)
-        return self._finish(FALLBACK_ANSWER, traces, history)
+        return self._finish(FALLBACK_ANSWER, traces, history, answered_by)
 
     def _run(self, call: ToolCall) -> ToolTrace:
         started = time.perf_counter()
@@ -88,13 +91,14 @@ class Assistant:
                     (time.perf_counter() - started) * 1000)
         return ToolTrace(call.name, call.arguments, result, ok)
 
-    def _finish(self, content: str, traces: list[ToolTrace], history: Sequence[ChatMessage]) -> AssistantAnswer:
+    def _finish(self, content: str, traces: list[ToolTrace], history: Sequence[ChatMessage],
+                model: str) -> AssistantAnswer:
         # Les réponses précédentes de l'assistant ne sont pas des sources : cela blanchirait un montant inventé.
         texts = [self.knowledge, *(m.content for m in history if m.role == "user")]
         flagged = unverified_amounts(content, texts, [trace.result for trace in traces])
         if flagged:
             logger.warning("Montants sans source dans la réponse : %s", ", ".join(flagged))
-        return AssistantAnswer(content, tuple(traces), tuple(flagged))
+        return AssistantAnswer(content, tuple(traces), tuple(flagged), model)
 
 
 def _assistant_message(content: str, calls: Sequence[ToolCall]) -> dict[str, Any]:

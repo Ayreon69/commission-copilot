@@ -56,12 +56,12 @@ def chat(body: ChatRequest, request: Request) -> ChatResponse:
     assistant: Assistant | None = request.app.state.assistant
     if assistant is None:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
-                            "Assistant indisponible : la variable MISTRAL_API_KEY n'est pas configurée.")
+                            "Assistant indisponible : la variable LLM_API_KEY n'est pas configurée.")
     answer = assistant.answer(body.messages)
     return ChatResponse(
         answer=answer.content,
         tool_calls=[ToolCallTrace(name=t.name, arguments=t.arguments, result=t.result, ok=t.ok)
                     for t in answer.tool_calls],
         unverified_amounts=list(answer.unverified_amounts),
-        model=assistant.model,
+        model=answer.model,
     )

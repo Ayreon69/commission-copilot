@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -27,9 +28,8 @@ class FakeLLM:
         self.calls.append({"messages": copy.deepcopy(messages), "tools": tools})
         if not self._replies:
             raise AssertionError("Appel au modèle non prévu par le test")
-        if self.repeat_last and len(self._replies) == 1:
-            return self._replies[0]
-        return self._replies.pop(0)
+        reply = self._replies[0] if self.repeat_last and len(self._replies) == 1 else self._replies.pop(0)
+        return replace(reply, model=reply.model or self.model)
 
 
 SEF_SIMULATION: dict[str, Any] = {

@@ -74,15 +74,16 @@ python -m commission_engine ANIMAUX 2026-03 --exclusions
 **API et assistant**
 
 ```bash
-cp .env.example .env                                       # renseigner MISTRAL_API_KEY
+cp .env.example .env                                       # renseigner LLM_API_KEY (clé Gemini gratuite)
 cd api
 pip install -e ../engine -e ".[dev]"
 python -m pytest
 uvicorn commission_api.main:create_app --factory --reload  # http://localhost:8000/docs
 ```
 
-Sans clé Mistral, l'API démarre quand même : le paramétrage, la simulation et les contrats d'exemple restent
-disponibles, seul `/api/chat` répond 503.
+Une clé Gemini gratuite s'obtient sans carte bancaire sur [Google AI Studio](https://aistudio.google.com).
+Sans clé, l'API démarre quand même : le paramétrage, la simulation et les contrats d'exemple restent disponibles,
+seul `/api/chat` répond 503.
 
 Exemple d'appel :
 
@@ -98,6 +99,7 @@ curl -X POST http://localhost:8000/api/chat -H "Content-Type: application/json" 
 - **Une seule logique pour l'interface et l'assistant.** Les routes HTTP et les outils du modèle passent par les mêmes services et les mêmes modèles de validation.
 - **Garde-fous sur les chiffres en trois niveaux** : consigne du prompt, montants obtenus uniquement par les outils, contrôle a posteriori de chaque montant cité.
 - **Boucle d'outils bornée**, avec une trace de chaque appel renvoyée au client.
+- **Indépendant du fournisseur de modèle.** Un client compatible OpenAI, Gemini par défaut (plan gratuit), et une chaîne de repli qui bascule de Gemini Flash vers Flash-Lite quand un quota est épuisé.
 - **Tests sans réseau** : le modèle de langage est remplacé par un modèle scripté, ce qui permet de tester la boucle d'outils, la gestion des erreurs et le contrôle des montants.
 - **Données d'exemple générées de façon déterministe**, avec des contrats scénarios dont le nom décrit le cas illustré.
 

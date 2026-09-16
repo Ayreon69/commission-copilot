@@ -42,6 +42,24 @@ def test_tool_result_is_sent_back_to_the_model(toolbox):
     assert "−1 200,00 €" in second_call[-1]["content"]
 
 
+def test_provider_message_is_sent_back_unchanged(toolbox):
+    raw = {
+        "role": "assistant",
+        "tool_calls": [{
+            "id": "call00001", "type": "function",
+            "function": {"name": "simulate_contract", "arguments": json.dumps(SEF_SIMULATION)},
+            "extra_content": {"google": {"thought_signature": "c2lnbmF0dXJl"}},
+        }],
+    }
+    first = LLMReply("", (ToolCall("call00001", "simulate_contract", SEF_SIMULATION),), "flash", raw)
+    llm = FakeLLM(first, LLMReply("La reprise est de −1 200,00 €.", model="flash-lite"))
+
+    answer = ask(llm, toolbox, "Combien est repris ?")
+
+    assert llm.calls[1]["messages"][-2] == raw
+    assert answer.model == "flash-lite"
+
+
 def test_amount_without_source_is_flagged(toolbox):
     llm = FakeLLM(LLMReply("Vous toucherez 1 234,56 €, comme les 1 440 € de l'exemple."))
     assert ask(llm, toolbox, "Combien vais-je toucher ?").unverified_amounts == ("1 234,56 €",)

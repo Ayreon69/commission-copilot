@@ -8,7 +8,7 @@ flowchart LR
     W -->|POST /api/chat| API[API FastAPI]
     W -->|POST /api/simulate| API
     API --> AS[Assistant<br/>boucle d'outils]
-    AS <-->|messages et définitions d'outils| LLM[(Mistral)]
+    AS <-->|messages et définitions d'outils| LLM[("Gemini Flash<br/>repli Flash-Lite")]
     AS -->|appels d'outils| SV[Services]
     API --> SV
     SV --> EN[Moteur de calcul]
@@ -37,6 +37,24 @@ Les routes HTTP et les outils du modèle appellent **les mêmes services** avec 
 | Streaming | Fourni par le Vercel AI SDK | À implémenter en SSE (étape 4) |
 
 **Choix : B.** Le moteur, les outils, le modèle de langage et l'évaluation vivent au même endroit, et l'interface reste purement présentationnelle. Le coût est d'implémenter soi-même le streaming des réponses, prévu à l'étape 4.
+
+## Fournisseur du modèle de langage
+
+Le code ne dépend d'aucun fournisseur : un client unique parle le format d'API d'OpenAI, que proposent Gemini, Groq, OpenRouter et Mistral. Changer de fournisseur revient à modifier `LLM_BASE_URL` et `LLM_MODELS`.
+
+**Choix par défaut : Google Gemini**, dont le plan gratuit donne accès à des modèles récents conçus pour les appels d'outils, sans carte bancaire.
+
+| Critère | Gemini (retenu) | Groq | OpenRouter `:free` | Mistral |
+|---|---|---|---|---|
+| Limite gênante du plan gratuit | Requêtes par jour sur les Flash récents | 8 000 tokens par minute, moins qu'une question de l'assistant (environ 7 000 tokens par appel) | 50 requêtes par jour | 2 requêtes par minute |
+| Appels d'outils | Modèles récents prévus pour | Bons | Variables selon le modèle | Bons |
+
+**Chaîne de repli.** Les modèles de `LLM_MODELS` sont essayés dans l'ordre : `gemini-3.7-flash` pour la qualité, puis `gemini-3.5-flash-lite`, au quota quotidien bien plus large. Un modèle qui répond « quota atteint » (erreur 429) est mis de côté 60 secondes, un modèle surchargé ou injoignable (erreur 5xx, délai dépassé) 15 secondes, et le suivant prend le relais. Les surcharges sont fréquentes sur le plan gratuit : dès le premier essai réel, `gemini-3.7-flash` a répondu 503 « high demand ». Les erreurs définitives (requête refusée, clé invalide) ne déclenchent pas de repli. Si tous les modèles sont épuisés, l'API répond 429 ; s'ils sont indisponibles, 502. La réponse du chat indique le modèle qui a réellement répondu.
+
+**Compatibilité.**
+- Le message de l'assistant est renvoyé au modèle exactement tel qu'il l'a produit, champs propres au fournisseur compris. Les modèles Gemini 3 en ont besoin pour retrouver leurs signatures de raisonnement entre deux appels d'outils.
+- Les schémas d'outils se limitent au sous-ensemble de JSON Schema accepté partout (pas de `format` ni de `pattern`). La validation stricte est faite ensuite par pydantic.
+- La température n'est pas forcée : Google recommande la valeur par défaut pour Gemini 3.
 
 ## Garde-fous sur les chiffres
 

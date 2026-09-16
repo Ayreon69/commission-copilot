@@ -1,7 +1,8 @@
 """Outils mis à disposition du modèle de langage.
 
 Les schémas JSON sont écrits à la main : descriptions en français et énumérations explicites guident mieux le modèle
-qu'un schéma généré. Les arguments reçus sont ensuite validés par les mêmes modèles pydantic que l'API HTTP,
+qu'un schéma généré. Ils se limitent au sous-ensemble de JSON Schema accepté par tous les fournisseurs (pas de
+`format` ni de `pattern`) : les arguments reçus sont validés ensuite par les mêmes modèles pydantic que l'API HTTP,
 et un test vérifie que les deux restent alignés.
 """
 
@@ -12,7 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
-from ..schemas import MONTH_PATTERN, LookupRequest, PerimeterRequest, SimulationRequest
+from ..schemas import LookupRequest, PerimeterRequest, SimulationRequest
 from ..services import CommissionService, ServiceError
 
 _STATE = {"type": "string", "enum": ["AFN", "SEF", "RES"],
@@ -24,7 +25,7 @@ class ToolError(Exception):
 
 
 def _date(description: str) -> dict[str, str]:
-    return {"type": "string", "format": "date", "description": f"{description}, format AAAA-MM-JJ"}
+    return {"type": "string", "description": f"{description}, format AAAA-MM-JJ"}
 
 
 def _function(name: str, description: str, properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
@@ -63,7 +64,7 @@ class Toolbox:
                 "formule détaillée et la provenance du taux, ou le motif pour lequel rien n'est dû.",
                 {
                     "perimeter": {"type": "string", "enum": active_perimeters, "description": "Code du périmètre"},
-                    "month": {"type": "string", "pattern": MONTH_PATTERN,
+                    "month": {"type": "string",
                               "description": f"Mois de calcul au format AAAA-MM (par défaut {month})"},
                     "contract": {
                         "type": "object",
