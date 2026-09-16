@@ -1,0 +1,25 @@
+# Blueprint Render : API de la démo (offre gratuite, image Docker).
+# L'interface est déployée séparément sur Vercel (voir docs/DEPLOIEMENT.md).
+services:
+  - type: web
+    name: commission-copilot-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: LLM_API_KEY
+        sync: false          # à saisir dans le tableau de bord Render, jamais dans le dépôt
+      - key: CORS_ORIGINS
+        sync: false          # adresse de l'interface Vercel, ex. https://commission-copilot.vercel.app
+      - key: LLM_MODELS
+        value: gemini-3.5-flash-lite,gemini-3.7-flash
+      - key: CHAT_LIMIT_PER_MINUTE
+        value: "6"
+      - key: CHAT_LIMIT_PER_DAY
+        value: "40"
+      - key: CHAT_LIMIT_GLOBAL_PER_DAY
+        value: "800"

@@ -173,4 +173,4 @@ python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul
 - [x] **4. Citations des règles, contrôle des produits cités, streaming**
 - [x] **5. Interface Next.js : chat, panneau « sous le capot », simulateur de contrat**
 - [x] **6. CI, conteneurisation, limitation de débit de la démo publique**
-- [ ] 7. Démo en ligne et vidéo de présentation
+- [ ] 7. Démo en ligne ([déploiement](docs/DEPLOIEMENT.md)) et vidéo de présentation ([script](docs/VIDEO.md))

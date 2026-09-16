@@ -7,7 +7,9 @@ import { SimulatorView } from "@/components/simulator/SimulatorView";
 import { api, type HealthOut } from "@/lib/api";
 
 type Tab = "assistant" | "simulator";
-type Health = { state: "loading" } | { state: "offline" } | { state: "online"; health: HealthOut };
+type Health = { state: "loading" } | { state: "waking" } | { state: "offline" } | { state: "online"; health: HealthOut };
+
+const WAKE_TIMEOUT_MS = 90_000;
 
 const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: "assistant", label: "Assistant", hint: "Poser une question" },
@@ -20,10 +22,28 @@ export function Workspace() {
   const [draftQuestion, setDraftQuestion] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .health()
-      .then((result) => setHealth({ state: "online", health: result }))
-      .catch(() => setHealth({ state: "offline" }));
+    // Sur l'hébergement gratuit, l'API se met en veille : le premier appel peut prendre jusqu'à une minute.
+    let cancelled = false;
+    const waking = setTimeout(() => !cancelled && setHealth({ state: "waking" }), 2500);
+    const connect = async () => {
+      const deadline = Date.now() + WAKE_TIMEOUT_MS;
+      for (;;) {
+        try {
+          const result = await api.health();
+          if (!cancelled) setHealth({ state: "online", health: result });
+          return;
+        } catch {
+          if (Date.now() > deadline) break;
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+      }
+      if (!cancelled) setHealth({ state: "offline" });
+    };
+    connect().finally(() => clearTimeout(waking));
+    return () => {
+      cancelled = true;
+      clearTimeout(waking);
+    };
   }, []);
 
   const askAssistant = (question: string) => {
@@ -91,6 +111,13 @@ export function Workspace() {
 function HealthBadge({ health }: { health: Health }) {
   if (health.state === "loading") {
     return <span className="font-mono text-[11px] text-ink-faint">Connexion à l&apos;API…</span>;
+  }
+  if (health.state === "waking") {
+    return (
+      <span className="scanning rounded-full border border-ochre px-2.5 py-0.5 font-mono text-[11px] text-ochre">
+        ● Réveil de l&apos;API (hébergement gratuit, jusqu&apos;à une minute)…
+      </span>
+    );
   }
   if (health.state === "offline") {
     return (
