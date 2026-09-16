@@ -6,6 +6,8 @@ Assistant pour comprendre la rémunération d'un cabinet de courtage en assuranc
 déterministe**, qui chiffre les commissions, et **un assistant conversationnel**, qui explique les règles et
 fait appel au moteur dès qu'il faut un chiffre.
 
+**Démo en ligne : https://commission-copilot-indol.vercel.app** (API hébergée gratuitement : le premier chargement peut prendre une minute).
+
 > Toutes les données sont fictives : cabinet, assureurs, produits, taux et contrats. Voir [docs/DONNEES_FICTIVES.md](docs/DONNEES_FICTIVES.md).
 
 ## Le problème

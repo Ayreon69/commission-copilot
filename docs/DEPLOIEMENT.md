@@ -10,6 +10,8 @@ Deux hébergements gratuits, sans carte bancaire :
 **Contrepartie assumée** : l'API Render se met en veille après 15 minutes sans trafic. Le premier visiteur attend
 jusqu'à une minute ; l'interface l'indique (« Réveil de l'API ») et réessaie jusqu'à ce que l'API réponde.
 
+Démo actuelle : interface https://commission-copilot-indol.vercel.app, API https://commission-copilot-api.onrender.com.
+
 ## 1. API sur Render
 
 1. Sur [render.com](https://render.com), **New → Blueprint**, puis choisir le dépôt GitHub. Render lit `render.yaml`.
@@ -22,7 +24,8 @@ jusqu'à une minute ; l'interface l'indique (« Réveil de l'API ») et réessai
 
 1. Sur [vercel.com](https://vercel.com), **Add New → Project**, importer le dépôt.
 2. **Root Directory** : `web`.
-3. Variable d'environnement `NEXT_PUBLIC_API_URL` = `https://<service>.onrender.com` (sans barre finale).
+3. L'adresse de l'API est lue dans `web/.env.production` (non secrète, versionnée). Pour une autre API, modifier ce
+   fichier ou définir `NEXT_PUBLIC_API_URL` dans Vercel, qui a priorité.
 4. Déployer, puis reporter l'adresse Vercel dans `CORS_ORIGINS` sur Render.
 
 ## 3. Contrôle
