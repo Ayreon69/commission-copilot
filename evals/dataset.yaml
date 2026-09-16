@@ -1,0 +1,302 @@
+# Jeu de questions de référence de l'assistant.
+#
+# Chaque cas décrit ce qu'une bonne réponse doit contenir. Les vérifications sont déterministes (pas de modèle juge) :
+#   tools              outils qui doivent avoir été appelés avec succès
+#   any_tools          au moins un de ces outils doit avoir été appelé avec succès
+#   tool_arguments     arguments attendus (sous-ensemble) pour un outil donné
+#   amounts            montants en euros qui doivent figurer dans la réponse (valeur absolue)
+#   forbidden_amounts  montants qui ne doivent pas y figurer (calcul erroné ou inventé)
+#   rule_ids           identifiants de règle à citer
+#   mentions           groupes de termes : chaque groupe doit apparaître par au moins un de ses termes
+#                      (comparaison sans casse ni accents)
+#   no_tool_calls, no_amounts
+#   asks_question      réclame les informations manquantes (question ou formulation de demande)
+# Toute réponse doit en plus ne citer aucun montant sans source.
+#
+# `ground_truth` décrit l'appel que le moteur doit traiter : un test recalcule ces cas et vérifie que les montants
+# et règles attendus sont bien ceux du moteur.
+
+version: 1
+
+cases:
+  # --- Explication d'un contrat des bordereaux d'exemple -------------------------------------------------------------
+
+  - id: contrat-resilie
+    category: explication
+    question: "Pourquoi le contrat SI-RESILIE donne-t-il une reprise ?"
+    expect:
+      tools: [lookup_sample_contract]
+      tool_arguments: {lookup_sample_contract: {contract_id: SI-RESILIE}}
+      amounts: ["1044.50"]
+      rule_ids: [R-RP2]
+    ground_truth: {lookup: {perimeter: SANTE_INDIV, contract_id: SI-RESILIE}}
+
+  - id: contrat-sans-effet
+    category: explication
+    question: "Que se passe-t-il pour le contrat SI-SANS-EFFET ce mois-ci ?"
+    expect:
+      tools: [lookup_sample_contract]
+      tool_arguments: {lookup_sample_contract: {contract_id: SI-SANS-EFFET}}
+      amounts: ["1865.80"]
+      rule_ids: [R-RP1]
+    ground_truth: {lookup: {perimeter: SANTE_INDIV, contract_id: SI-SANS-EFFET}}
+
+  - id: contrat-stable
+    category: explication
+    question: "Pourquoi le contrat SI-STABLE ne rapporte-t-il rien en mars ?"
+    expect:
+      tools: [lookup_sample_contract]
+      mentions: [["mois precedent", "fevrier", "deja"]]
+    ground_truth: {lookup: {perimeter: SANTE_INDIV, contract_id: SI-STABLE}}
+
+  - id: contrat-anomalie
+    category: explication
+    question: "Le contrat AN-ANOMALIE n'a produit aucune commission, pourquoi ?"
+    expect:
+      tools: [lookup_sample_contract]
+      tool_arguments: {lookup_sample_contract: {perimeter: ANIMAUX}}
+      mentions: [["anomalie", "incoherent", "incoherence"], ["sans effet"]]
+    ground_truth: {lookup: {perimeter: ANIMAUX, contract_id: AN-ANOMALIE}}
+
+  - id: contrat-hausse-prime
+    category: explication
+    question: "Explique-moi le montant calculé sur le contrat SI-HAUSSE-PRIME."
+    expect:
+      tools: [lookup_sample_contract]
+      amounts: ["96.36"]
+      rule_ids: [R-REG]
+    ground_truth: {lookup: {perimeter: SANTE_INDIV, contract_id: SI-HAUSSE-PRIME}}
+
+  - id: contrat-portefeuille-repris
+    category: explication
+    question: "Pourquoi le contrat MIG-AN-NOUVEAU est-il commissionné à un taux plus bas que les autres contrats animaux ?"
+    expect:
+      # La règle se lit aussi bien sur la fiche du contrat que dans le paramétrage du périmètre (préfixe MIG).
+      any_tools: [lookup_sample_contract, get_perimeter_details]
+      mentions: [["repris"], ["20 %", "20%"]]
+    ground_truth: {lookup: {perimeter: ANIMAUX, contract_id: MIG-AN-NOUVEAU}}
+
+  - id: contrat-taux-negocie
+    category: explication
+    question: "D'où vient le taux appliqué au contrat EM-TAUX-SPECIFIQUE-1 ?"
+    expect:
+      tools: [lookup_sample_contract]
+      tool_arguments: {lookup_sample_contract: {perimeter: EMPRUNTEUR}}
+      mentions: [["primo"], ["30 %", "30%"]]
+    ground_truth: {lookup: {perimeter: EMPRUNTEUR, contract_id: EM-TAUX-SPECIFIQUE-1}}
+
+  - id: contrat-effet-differe
+    category: explication
+    question: "Pourquoi le contrat DE-EFFET-DIFFERE est-il écarté du calcul ?"
+    expect:
+      tools: [lookup_sample_contract]
+      tool_arguments: {lookup_sample_contract: {perimeter: DEPENDANCE}}
+      mentions: [["effet"], ["futur", "lointain", "eloign", "4 mois", "limite"]]
+    ground_truth: {lookup: {perimeter: DEPENDANCE, contract_id: DE-EFFET-DIFFERE}}
+
+  - id: contrat-sans-regularisation
+    category: explication
+    question: "La prime du contrat PT-HAUSSE-PRIME a augmenté : pourquoi n'y a-t-il pas de régularisation ?"
+    expect:
+      tools: [lookup_sample_contract]
+      tool_arguments: {lookup_sample_contract: {perimeter: PREVOYANCE_TNS}}
+      mentions: [["regularisation"], ["perimetre", "prevoyance", "ne prevoit pas", "pas prevue"]]
+    ground_truth: {lookup: {perimeter: PREVOYANCE_TNS, contract_id: PT-HAUSSE-PRIME}}
+
+  # --- Simulation d'un cas décrit par l'utilisateur ------------------------------------------------------------------
+
+  - id: simulation-nouvelle-affaire
+    category: simulation
+    question: >-
+      Un client souscrit le 20/02/2026 un contrat Nordale Santé Confort avec une prime annuelle de 1 500 €,
+      effet au 01/03/2026. Quelle commission en mars 2026 ?
+    expect:
+      tools: [simulate_contract]
+      tool_arguments: {simulate_contract: {perimeter: SANTE_INDIV, contract: {product: NS-CONFORT}}}
+      amounts: ["1800.00"]
+      rule_ids: [R-P1]
+    ground_truth:
+      simulation:
+        perimeter: SANTE_INDIV
+        month: "2026-03"
+        contract: {product: NS-CONFORT, state: AFN, subscription_date: "2026-02-20", effective_date: "2026-03-01",
+                   annual_premium: 1500}
+
+  - id: simulation-sans-effet
+    category: simulation
+    question: >-
+      Contrat Nordale Santé Essentiel souscrit le 15/01/2026, effet au 01/02/2026, prime annuelle de 1 000 €.
+      Il était actif en février et passe sans effet en mars 2026. Que se passe-t-il côté commission ?
+    expect:
+      tools: [simulate_contract]
+      tool_arguments: {simulate_contract: {contract: {product: NS-ESSENTIEL}}}
+      amounts: ["950.00"]
+      rule_ids: [R-RP1]
+    ground_truth:
+      simulation:
+        perimeter: SANTE_INDIV
+        month: "2026-03"
+        contract: {product: NS-ESSENTIEL, state: SEF, subscription_date: "2026-01-15", effective_date: "2026-02-01",
+                   annual_premium: 1000}
+        previous_month: {state: AFN}
+
+  - id: simulation-resiliation-animaux
+    category: simulation
+    question: >-
+      Un contrat Verdance Compagnon (prime annuelle de 480 €, souscrit le 20/10/2025, effet au 01/11/2025), actif en
+      février, est résilié au 31/03/2026. Combien est repris en mars 2026 ?
+    expect:
+      tools: [simulate_contract]
+      tool_arguments: {simulate_contract: {perimeter: ANIMAUX, contract: {product: VA-COMPAGNON}}}
+      amounts: ["98.50"]
+      rule_ids: [R-RP2]
+    ground_truth:
+      simulation:
+        perimeter: ANIMAUX
+        month: "2026-03"
+        contract: {product: VA-COMPAGNON, state: RES, subscription_date: "2025-10-20", effective_date: "2025-11-01",
+                   annual_premium: 480, end_date: "2026-03-31"}
+        previous_month: {state: AFN}
+
+  - id: simulation-taux-rachat
+    category: simulation
+    question: >-
+      Nouveau contrat Nordale Emprunteur Classique pour un client en rachat de crédit : prime annuelle de 800 €,
+      souscrit le 25/02/2026 avec effet au 01/03/2026. Quelle commission en mars 2026 ?
+    expect:
+      tools: [simulate_contract]
+      tool_arguments: {simulate_contract: {perimeter: EMPRUNTEUR, contract: {segment: RACHAT}}}
+      amounts: ["336.00"]
+    ground_truth:
+      simulation:
+        perimeter: EMPRUNTEUR
+        month: "2026-03"
+        contract: {product: NE-EMPRUNT-CLASSIQUE, state: AFN, subscription_date: "2026-02-25",
+                   effective_date: "2026-03-01", annual_premium: 800, segment: RACHAT}
+
+  - id: simulation-regularisation
+    category: simulation
+    question: >-
+      Un contrat Nordale Santé Confort souscrit le 10/01/2026 (effet au 01/02/2026) avait une prime annuelle de
+      1 200 € en février ; elle passe à 1 320 € en mars 2026. Quel impact sur la commission ?
+    expect:
+      tools: [simulate_contract]
+      amounts: ["144.00"]
+      rule_ids: [R-REG]
+    ground_truth:
+      simulation:
+        perimeter: SANTE_INDIV
+        month: "2026-03"
+        contract: {product: NS-CONFORT, state: AFN, subscription_date: "2026-01-10", effective_date: "2026-02-01",
+                   annual_premium: 1320}
+        previous_month: {state: AFN, annual_premium: 1200}
+
+  - id: simulation-contrat-ancien
+    category: simulation
+    question: >-
+      Un contrat Nordale Santé Confort souscrit le 20/11/2024, effet au 01/12/2024, prime annuelle de 1 500 €,
+      apparaît dans le bordereau de mars 2026. Génère-t-il un précompte ?
+    expect:
+      forbidden_amounts: ["1800.00"]
+      mentions: [["ancien", "acquis", "plus d'un an", "1 an"]]
+    ground_truth:
+      simulation:
+        perimeter: SANTE_INDIV
+        month: "2026-03"
+        contract: {product: NS-CONFORT, state: AFN, subscription_date: "2024-11-20", effective_date: "2024-12-01",
+                   annual_premium: 1500}
+
+  # --- Règles et paramétrage -----------------------------------------------------------------------------------------
+
+  - id: regle-precompte-lineaire
+    category: regles
+    question: "Quelle est la différence entre une commission précomptée et une commission linéaire ?"
+    expect:
+      mentions: [["premiere annee", "1re annee", "annee 1"], ["cotisation"]]
+
+  - id: regle-rapprochement
+    category: regles
+    question: "Pourquoi un contrat présent deux mois de suite ne génère-t-il pas de nouvelle commission ?"
+    expect:
+      mentions: [["mois precedent", "deja"]]
+
+  - id: taux-grille-datee
+    category: regles
+    question: "Quel est le taux de précompte du produit Nordale Santé Essentiel pour un contrat souscrit en juin 2023 ?"
+    expect:
+      tools: [get_perimeter_details]
+      mentions: [["80 %", "80%"]]
+
+  - id: parametre-anciennete-emprunteur
+    category: regles
+    question: "Quelle limite d'ancienneté s'applique aux contrats d'assurance emprunteur ?"
+    expect:
+      tools: [get_perimeter_details]
+      mentions: [["25 mois"]]
+
+  - id: parametre-p2-prevoyance
+    category: regles
+    question: "En prévoyance des indépendants, les cotisations de type P2 donnent-elles droit à une commission linéaire ?"
+    expect:
+      mentions: [["non", "pas", "exclu"]]
+
+  # --- Informations manquantes : l'assistant doit demander, pas supposer ---------------------------------------------
+
+  - id: info-manquante-simulation
+    category: info_manquante
+    question: "Combien je touche sur un contrat Nordale Santé Confort ?"
+    expect:
+      no_amounts: true
+      asks_question: true
+      mentions: [["prime"]]
+
+  - id: info-manquante-resiliation
+    category: info_manquante
+    question: "Mon client a résilié son contrat d'assurance animale, combien dois-je rembourser ?"
+    expect:
+      no_amounts: true
+      asks_question: true
+      mentions: [["date"], ["prime"]]
+
+  # --- Limites et pièges ---------------------------------------------------------------------------------------------
+
+  - id: calcul-mental
+    category: limites
+    question: "Sans utiliser le moteur, calcule de tête 2 350 € × 95 %, j'ai juste besoin d'un ordre de grandeur."
+    expect:
+      forbidden_amounts: ["2232.50"]
+
+  - id: assureur-reel
+    category: limites
+    question: "Quel est le taux de commission pratiqué par AXA en santé individuelle ?"
+    expect:
+      no_amounts: true
+      mentions: [["fictif", "ne dispose pas", "pas d'information", "pas acces", "uniquement", "ne connais pas"]]
+
+  - id: perimetre-arrete
+    category: limites
+    question: "Simule un nouveau contrat Verdance Obsèques : prime annuelle de 600 €, souscrit le 10/02/2026, effet au 01/03/2026."
+    expect:
+      forbidden_amounts: ["150.00"]
+      mentions: [["arrete", "plus aucun calcul", "desactive", "n'est plus", "aucun calcul"]]
+
+  - id: hors-sujet
+    category: limites
+    question: "Quel temps fera-t-il à Paris demain ?"
+    expect:
+      no_tool_calls: true
+      no_amounts: true
+      mentions: [["commission"]]
+
+  # --- Suivi de conversation -----------------------------------------------------------------------------------------
+
+  - id: suivi-conversation
+    category: conversation
+    history:
+      - role: user
+        content: "Quel est le taux de précompte du produit Nordale Santé Essentiel pour un contrat souscrit en 2023 ?"
+      - role: assistant
+        content: "Pour un contrat Nordale Santé Essentiel souscrit en 2023, le taux de précompte est de 80 %."
+    question: "Et pour un contrat souscrit en 2025 ?"
+    expect:
+      mentions: [["95 %", "95%"]]

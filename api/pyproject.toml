@@ -17,14 +17,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.5"]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.5", "pyyaml>=6"]
 
 [tool.setuptools.packages.find]
 include = ["commission_api*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = [".", "../engine", "tests"]
+pythonpath = [".", "../engine", "tests", ".."]
 
 [tool.ruff]
 line-length = 120

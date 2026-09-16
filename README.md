@@ -35,6 +35,31 @@ La réponse de l'API contient la trace de chaque appel d'outil et la liste des m
 
 L'architecture et ses garde-fous sont détaillés dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Fiabilité mesurée
+
+L'assistant est évalué sur 27 questions de référence, réparties en six catégories : explication d'un contrat,
+simulation, règles, informations manquantes, pièges et suivi de conversation. Les vérifications sont déterministes :
+outils appelés, montants exacts, règles citées, montants interdits. Les réponses attendues sont recalculées par le
+moteur dans les tests. Détail dans [evals/RAPPORT.md](evals/RAPPORT.md).
+
+| Modèle (plan gratuit Gemini) | Questions réussies | Montants sans source | Latence médiane |
+|---|---|---|---|
+| `gemini-3.5-flash-lite` | 85 % (23/27) | 0 | 1,9 s |
+| `gemini-3.7-flash` | non évaluable : surcharges répétées puis quota journalier épuisé | — | — |
+
+**Ce que l'évaluation a permis de corriger.** Pour un client en rachat de crédit, le modèle transmettait le segment
+`RACHAT_CREDIT` au lieu de `RACHAT`. Le taux négocié ne s'appliquait pas, et l'assistant annonçait 280 € au lieu de
+336 € en justifiant le mauvais taux. Le contrôle des montants ne pouvait pas le voir : le chiffre venait bien du
+moteur, mais calculé sur une mauvaise donnée. Désormais, les segments autorisés sont imposés dans la définition de
+l'outil, et le service refuse tout segment inconnu. Le cas est réussi depuis.
+
+**Limites connues.**
+- Les scores varient d'une exécution à l'autre : deux passages ont donné 24 puis 23 questions réussies, sans échouer
+  sur les mêmes questions.
+- Les vérifications par mots-clés peuvent rejeter une réponse correcte formulée autrement.
+- Les échecs restants sont surtout des réponses incomplètes, par exemple une explication de taux qui ne cite pas le
+  pourcentage.
+
 ## Structure
 
 ```text
@@ -49,6 +74,10 @@ commission-copilot/
 │   │   ├── routes.py           Points d'entrée HTTP
 │   │   └── assistant/          Boucle d'outils, définitions d'outils, prompt, contrôle des montants
 │   └── tests/                  Tests avec un modèle de langage scripté (aucun appel réseau)
+├── evals/                      Évaluation de l'assistant
+│   ├── dataset.yaml            27 questions de référence et leurs vérifications
+│   ├── run.py, report.py       Exécution par modèle et rapport comparatif
+│   └── RAPPORT.md              Derniers résultats
 ├── data/
 │   ├── catalog.json            Paramétrage : assureurs, périmètres, produits, grilles de taux
 │   └── samples/                Bordereaux fictifs (5 périmètres, février et mars 2026)
@@ -91,6 +120,13 @@ Exemple d'appel :
 curl -X POST http://localhost:8000/api/chat -H "Content-Type: application/json" -d "{\"messages\": [{\"role\": \"user\", \"content\": \"Pourquoi le contrat SI-RESILIE donne-t-il une reprise ?\"}]}"
 ```
 
+**Évaluation**
+
+```bash
+python -m evals.run                                        # depuis la racine, modèles de LLM_MODELS
+python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul-mental
+```
+
 ## Choix techniques
 
 - **Paramétrage déclaratif.** Clés de rapprochement, bases d'exposition, seuils, taux négociés et exclusions sont décrits dans `catalog.json`. Ajouter un périmètre ne demande aucune ligne de code.
@@ -99,7 +135,7 @@ curl -X POST http://localhost:8000/api/chat -H "Content-Type: application/json" 
 - **Une seule logique pour l'interface et l'assistant.** Les routes HTTP et les outils du modèle passent par les mêmes services et les mêmes modèles de validation.
 - **Garde-fous sur les chiffres en trois niveaux** : consigne du prompt, montants obtenus uniquement par les outils, contrôle a posteriori de chaque montant cité.
 - **Boucle d'outils bornée**, avec une trace de chaque appel renvoyée au client.
-- **Indépendant du fournisseur de modèle.** Un client compatible OpenAI, Gemini par défaut (plan gratuit), et une chaîne de repli qui bascule de Gemini Flash vers Flash-Lite quand un quota est épuisé.
+- **Indépendant du fournisseur de modèle.** Un client compatible OpenAI, Gemini par défaut (plan gratuit), et une chaîne de repli qui bascule sur le modèle suivant quand un modèle est saturé ou à court de quota.
 - **Tests sans réseau** : le modèle de langage est remplacé par un modèle scripté, ce qui permet de tester la boucle d'outils, la gestion des erreurs et le contrôle des montants.
 - **Données d'exemple générées de façon déterministe**, avec des contrats scénarios dont le nom décrit le cas illustré.
 
@@ -107,7 +143,7 @@ curl -X POST http://localhost:8000/api/chat -H "Content-Type: application/json" 
 
 - [x] **1. Données fictives et moteur de calcul déterministe**
 - [x] **2. API du moteur et appel d'outils par le LLM**
-- [ ] 3. Jeu d'évaluation des réponses de l'assistant et score de fiabilité
+- [x] **3. Jeu d'évaluation des réponses de l'assistant et score de fiabilité**
 - [ ] 4. Citations des règles dans les réponses, streaming
 - [ ] 5. Interface Next.js : chat, panneau « sous le capot », simulateur de contrat
 - [ ] 6. CI, conteneurisation, limitation de débit de la démo publique

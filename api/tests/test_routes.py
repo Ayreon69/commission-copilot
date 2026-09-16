@@ -55,6 +55,18 @@ def test_simulate_rejects_stopped_perimeter(client):
     assert "arrêté" in response.json()["detail"]
 
 
+def test_simulate_rejects_unknown_segment_instead_of_applying_standard_rate(client):
+    body = copy.deepcopy(SEF_SIMULATION)
+    body["perimeter"] = "EMPRUNTEUR"
+    body["contract"] |= {"product": "NE-EMPRUNT-CLASSIQUE", "segment": "RACHAT_CREDIT"}
+    response = client.post("/api/simulate", json=body)
+    assert response.status_code == 422
+    assert "PRIMO, RACHAT" in response.json()["detail"]
+
+    body["contract"]["segment"] = "rachat"
+    assert client.post("/api/simulate", json=body).status_code == 200
+
+
 @pytest.mark.parametrize(
     ("path", "value"),
     [

@@ -55,6 +55,7 @@ class CommissionService:
 
     def simulate(self, request: SimulationRequest) -> CalculationOut:
         perimeter = self._active_perimeter(request.perimeter)
+        _check_segment(perimeter, request.contract.segment)
         current, previous = request.records()
         return presenters.calculation_out(
             simulate_contract(self.catalog, perimeter.code, request.month, current, previous)
@@ -120,6 +121,19 @@ class CommissionService:
         if not months:
             raise NotFoundError(f"Aucun bordereau d'exemple pour le périmètre {code}.")
         return max(months)
+
+
+def _check_segment(perimeter: Perimeter, segment: str) -> None:
+    """Refuse un segment inconnu : sinon le taux standard s'appliquerait sans que personne ne s'en aperçoive."""
+    if not segment:
+        return
+    allowed = sorted({o.segment for o in perimeter.rate_overrides if o.segment})
+    if normalize_token(segment) not in {normalize_token(s) for s in allowed}:
+        accepted = ", ".join(allowed) if allowed else "aucun"
+        raise InvalidRequestError(
+            f"Segment « {segment} » inconnu pour le périmètre {perimeter.code}. Segments à taux négocié : {accepted}. "
+            "Laisser le segment vide pour un client sans taux négocié."
+        )
 
 
 def _months_in(folder: Path) -> list[str]:

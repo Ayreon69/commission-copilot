@@ -16,8 +16,10 @@ GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 class Settings:
     llm_api_key: str | None = None
     llm_base_url: str = GEMINI_BASE_URL
-    # Modèles essayés dans l'ordre : le suivant prend le relais quand le quota gratuit du précédent est épuisé.
-    llm_models: tuple[str, ...] = ("gemini-3.7-flash", "gemini-3.5-flash-lite")
+    # Modèles essayés dans l'ordre : le suivant prend le relais quand le précédent est saturé ou à court de quota.
+    # Flash-Lite en premier : sur le plan gratuit, Flash est souvent saturé et son quota journalier est très bas
+    # (voir evals/RAPPORT.md).
+    llm_models: tuple[str, ...] = ("gemini-3.5-flash-lite", "gemini-3.7-flash")
     llm_reasoning_effort: str | None = None
     data_dir: Path = REPO_ROOT / "data"
     knowledge_path: Path = REPO_ROOT / "knowledge" / "regles-metier.md"

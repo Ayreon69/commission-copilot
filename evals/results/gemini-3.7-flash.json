@@ -1,0 +1,46 @@
+{
+  "model": "gemini-3.7-flash",
+  "provider": "https://generativelanguage.googleapis.com/v1beta/openai/",
+  "date": "2026-09-16T17:40:01+00:00",
+  "dataset_version": 1,
+  "complete": false,
+  "llm_calls": 12,
+  "summary": {
+    "cases": 3,
+    "evaluated": 0,
+    "passed": 0,
+    "errors": 3,
+    "pass_rate": null,
+    "checks_passed": 0,
+    "checks_total": 0,
+    "unverified_amounts": 0,
+    "median_latency_s": null,
+    "by_category": {}
+  },
+  "cases": [
+    {
+      "id": "contrat-resilie",
+      "category": "explication",
+      "question": "Pourquoi le contrat SI-RESILIE donne-t-il une reprise ?",
+      "status": "error",
+      "error": "gemini-3.7-flash : indisponible",
+      "latency_s": 138.7
+    },
+    {
+      "id": "contrat-sans-effet",
+      "category": "explication",
+      "question": "Que se passe-t-il pour le contrat SI-SANS-EFFET ce mois-ci ?",
+      "status": "error",
+      "error": "gemini-3.7-flash : indisponible",
+      "latency_s": 185.17
+    },
+    {
+      "id": "contrat-stable",
+      "category": "explication",
+      "question": "Pourquoi le contrat SI-STABLE ne rapporte-t-il rien en mars ?",
+      "status": "error",
+      "error": "gemini-3.7-flash : quota atteint",
+      "latency_s": 112.05
+    }
+  ]
+}

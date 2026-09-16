@@ -38,6 +38,13 @@ def test_calculation_tools_only_offer_active_perimeters(toolbox):
     assert "OBSEQUES" in parameters["get_perimeter_details"]["properties"]["perimeter"]["enum"]
 
 
+def test_negotiated_segments_and_guarantees_are_enumerated(toolbox):
+    contract = _parameters(toolbox)["simulate_contract"]["properties"]["contract"]["properties"]
+    assert contract["segment"]["enum"] == ["PRIMO", "RACHAT"]
+    assert "RACHAT (Changement d'assurance après rachat de crédit)" in contract["segment"]["description"]
+    assert contract["guarantee"]["enum"] == ["RENFORT-DENTAIRE"]
+
+
 def test_simulate_tool_returns_engine_result(toolbox):
     result = toolbox.execute("simulate_contract", SEF_SIMULATION)
     assert result["lines"][0]["amount_display"] == "−1 200,00 €"

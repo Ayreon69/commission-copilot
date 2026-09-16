@@ -18,7 +18,7 @@ def test_defaults_target_gemini_free_models():
     settings = Settings.from_env()
     assert settings.llm_api_key is None
     assert settings.llm_base_url == GEMINI_BASE_URL
-    assert settings.llm_models == ("gemini-3.7-flash", "gemini-3.5-flash-lite")
+    assert settings.llm_models == ("gemini-3.5-flash-lite", "gemini-3.7-flash")
     assert build_llm(settings) is None
 
 

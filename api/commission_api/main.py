@@ -29,17 +29,17 @@ def build_llm(settings: Settings) -> LLMClient | None:
     ])
 
 
+def build_assistant(settings: Settings, llm: LLMClient, service: CommissionService) -> Assistant:
+    knowledge = settings.knowledge_path.read_text(encoding="utf-8")
+    prompt = build_system_prompt(service.catalog, knowledge, service.default_month())
+    return Assistant(llm, Toolbox(service), prompt, knowledge, settings.max_tool_rounds)
+
+
 def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
-    catalog = Catalog.load(settings.catalog_path)
-    service = CommissionService(catalog, settings.samples_dir)
-    knowledge = settings.knowledge_path.read_text(encoding="utf-8")
-
+    service = CommissionService(Catalog.load(settings.catalog_path), settings.samples_dir)
     llm = llm or build_llm(settings)
-    assistant = None
-    if llm is not None:
-        prompt = build_system_prompt(catalog, knowledge, service.default_month())
-        assistant = Assistant(llm, Toolbox(service), prompt, knowledge, settings.max_tool_rounds)
+    assistant = build_assistant(settings, llm, service) if llm is not None else None
 
     app = FastAPI(
         title="Commission Copilot API",

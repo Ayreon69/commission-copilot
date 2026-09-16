@@ -47,6 +47,11 @@ class Toolbox:
         active_perimeters = [p.code for p in catalog.perimeters.values() if p.active]
         products = sorted(p.code for p in catalog.products.values() if catalog.perimeter(p.perimeter).active)
         month = service.default_month()
+        # Segments et garanties à taux négocié : une énumération empêche le modèle d'inventer un libellé approchant
+        # (« RACHAT_CREDIT » au lieu de « RACHAT ») qui ferait silencieusement appliquer le taux standard.
+        overrides = [o for p in catalog.perimeters.values() if p.active for o in p.rate_overrides]
+        segments = {o.segment: o.reason for o in overrides if o.segment}
+        guarantees = {o.guarantee: o.reason for o in overrides if o.guarantee}
 
         self.definitions: list[dict[str, Any]] = [
             _function(
@@ -78,10 +83,12 @@ class Toolbox:
                             "annual_premium": {"type": "number", "minimum": 0,
                                                "description": "Prime annuelle hors taxes, en euros"},
                             "end_date": _date("Date de fin ou de résiliation, à renseigner pour un contrat résilié"),
-                            "guarantee": {"type": "string",
-                                          "description": "Garantie, uniquement si elle a un taux spécifique"},
-                            "segment": {"type": "string",
-                                        "description": "Segment de clientèle, uniquement s'il a un taux négocié"},
+                            "guarantee": {"type": "string", "enum": sorted(guarantees),
+                                          "description": "Garantie à taux spécifique, à omettre sinon : "
+                                                         + _describe(guarantees)},
+                            "segment": {"type": "string", "enum": sorted(segments),
+                                        "description": "Segment de clientèle à taux négocié, à omettre sinon : "
+                                                       + _describe(segments)},
                             "file_rate_year_1": {"type": "number", "minimum": 0,
                                                  "description": "Taux transmis par l'assureur, ex. 0.38 pour 38 %"},
                         },
@@ -130,6 +137,10 @@ class Toolbox:
             raise ToolError(_describe_validation_error(exc)) from None
         except ServiceError as exc:
             raise ToolError(str(exc)) from None
+
+
+def _describe(values: dict[str, str]) -> str:
+    return "; ".join(f"{code} ({reason})" for code, reason in sorted(values.items()))
 
 
 def _describe_validation_error(exc: ValidationError) -> str:
