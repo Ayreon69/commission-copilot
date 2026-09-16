@@ -91,6 +91,9 @@ def run_case(assistant: Assistant, case: EvalCase) -> dict[str, Any]:
         "model": answer.model,
         "tool_calls": [{"name": t.name, "arguments": t.arguments, "ok": t.ok} for t in answer.tool_calls],
         "unverified_amounts": list(answer.unverified_amounts),
+        "unknown_products": list(answer.unknown_products),
+        "unknown_rules": list(answer.unknown_rules),
+        "cited_rules": [citation.rule_id for citation in answer.citations if citation.in_answer],
         "latency_s": round(time.perf_counter() - started, 2),
     }
 
@@ -113,6 +116,8 @@ def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
         "checks_passed": sum(check["passed"] for check in checks),
         "checks_total": len(checks),
         "unverified_amounts": sum(len(r["unverified_amounts"]) for r in evaluated),
+        "unknown_products": sum(len(r.get("unknown_products", [])) for r in evaluated),
+        "unknown_rules": sum(len(r.get("unknown_rules", [])) for r in evaluated),
         "median_latency_s": round(statistics.median(r["latency_s"] for r in evaluated), 2) if evaluated else None,
         "by_category": by_category,
     }

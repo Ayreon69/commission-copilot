@@ -277,12 +277,22 @@ class ToolCallTrace(BaseModel):
     ok: bool
 
 
+class CitationOut(BaseModel):
+    rule_id: str
+    label: str
+    in_answer: bool = Field(description="L'identifiant de la règle figure dans le texte de la réponse")
+    from_calculation: bool = Field(description="La règle a été appliquée par le moteur dans un résultat d'outil")
+
+
 class ChatResponse(BaseModel):
     answer: str
     tool_calls: list[ToolCallTrace]
+    citations: list[CitationOut] = Field(description="Règles citées dans la réponse ou appliquées par le moteur")
     unverified_amounts: list[str] = Field(
         description="Montants cités par l'assistant qui ne proviennent d'aucune source (outil, règles, question)"
     )
+    unknown_rules: list[str] = Field(description="Identifiants de règle cités qui n'existent pas")
+    unknown_products: list[str] = Field(description="Noms de produits cités qui n'existent pas dans le catalogue")
     model: str
 
 

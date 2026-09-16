@@ -58,11 +58,30 @@ Le code ne dépend d'aucun fournisseur : un client unique parle le format d'API 
 
 ## Garde-fous sur les chiffres
 
-Un montant faux présenté avec assurance est le risque principal. Trois niveaux de défense se complètent :
+Un montant faux présenté avec assurance est le risque principal. Plusieurs niveaux de défense se complètent :
 
-1. **Consigne** : le prompt système interdit au modèle de calculer. Tout montant, taux ou seuil doit venir d'un outil. Si une information manque, le modèle doit la demander.
+1. **Consigne** : le prompt système interdit au modèle de calculer. Tout montant, taux ou seuil doit venir d'un outil. Si une information manque, le modèle doit la demander. La liste exacte des produits figure dans le prompt.
 2. **Architecture** : le seul moyen d'obtenir un chiffre est d'appeler le moteur via `simulate_contract`, `lookup_sample_contract` ou `get_perimeter_details`. Les résultats contiennent des montants déjà formatés, à recopier tels quels.
-3. **Contrôle a posteriori** : chaque montant en euros de la réponse est comparé aux sources (résultats d'outils, règles de référence, messages de l'utilisateur). Un montant sans source est renvoyé dans `unverified_amounts`, que l'interface pourra signaler.
+3. **Entrées contraintes** : les valeurs qui changent le taux (segments, garanties négociées) sont imposées par énumération dans la définition de l'outil. Le service refuse un segment inconnu au lieu d'appliquer silencieusement le taux standard.
+4. **Contrôles a posteriori**, renvoyés avec chaque réponse :
+   - `unverified_amounts` : montants en euros absents des sources (résultats d'outils, règles de référence, messages de l'utilisateur) ;
+   - `citations` : règles citées dans le texte ou appliquées par le moteur, avec pour chacune `in_answer` et `from_calculation`. Une règle citée mais non appliquée mérite l'attention ; une règle appliquée mais non citée indique une explication incomplète ;
+   - `unknown_rules` : identifiants de règle qui n'existent pas ;
+   - `unknown_products` : noms de produits absents du catalogue, repérés par la marque (« Verdance Essentiel »).
+
+## Streaming
+
+`POST /api/chat/stream` renvoie un flux Server-Sent Events. L'interface peut ainsi montrer le déroulé en direct : outil lancé, résultat du moteur, texte au fil de l'écriture.
+
+| Événement | Contenu |
+|---|---|
+| `tool_call` | Nom de l'outil et arguments, avant exécution |
+| `tool_result` | Trace de l'appel : arguments, résultat, succès |
+| `delta` | Fragment de texte. Un texte qui précède des appels d'outils n'est pas la réponse finale |
+| `done` | Réponse complète, au même format que `POST /api/chat`, contrôles compris |
+| `error` | `{status, detail}` : 429 quota épuisé, 502 modèle indisponible. Le flux s'arrête |
+
+Les fragments d'appels d'outils reçus du fournisseur sont recollés, arguments JSON et champs propres au fournisseur compris, avant d'être renvoyés au modèle au tour suivant. Le repli sur un autre modèle reste possible tant qu'aucun fragment n'a été transmis. Au-delà, une erreur est signalée par l'événement `error`, car un texte déjà affiché ne peut pas être repris par un autre modèle.
 
 La boucle d'outils est bornée (4 tours par défaut). Au dernier tour, le modèle ne reçoit plus d'outils et doit conclure. Chaque appel d'outil (arguments, résultat, succès) est renvoyé au client pour le panneau « sous le capot ».
 
@@ -75,6 +94,7 @@ La boucle d'outils est bornée (4 tours par défaut). Au dernier tour, le modèl
 | GET | `/api/perimeters/{code}` | Paramétrage détaillé et grilles de taux |
 | POST | `/api/simulate` | Calcul d'un contrat entre M-1 et M |
 | GET | `/api/samples/{perimeter}/contracts/{contract_id}` | Contrat d'exemple, son historique et son résultat |
-| POST | `/api/chat` | Question à l'assistant : réponse, trace des outils, montants non vérifiés |
+| POST | `/api/chat` | Question à l'assistant : réponse, trace des outils, citations et contrôles |
+| POST | `/api/chat/stream` | Même question, en flux Server-Sent Events |
 
 Documentation interactive : `http://localhost:8000/docs` une fois l'API lancée.

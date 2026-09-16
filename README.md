@@ -31,7 +31,8 @@ RP  SI-RESILIE   −1 044,50 €  [R-RP2] (2 089,00 € × 120 % × 7/12) − (2
 
 Pour répondre à « Pourquoi le contrat SI-RESILIE donne-t-il une reprise ? », l'assistant appelle l'outil
 `lookup_sample_contract`, reçoit l'historique du contrat et le calcul du moteur, puis l'explique en langage métier.
-La réponse de l'API contient la trace de chaque appel d'outil et la liste des montants non vérifiés.
+La réponse de l'API contient la trace de chaque appel d'outil, les règles citées (avec l'indication qu'elles ont
+bien servi au calcul) et les éléments non vérifiés : montants sans source, règles ou produits inexistants.
 
 L'architecture et ses garde-fous sont détaillés dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -42,10 +43,10 @@ simulation, règles, informations manquantes, pièges et suivi de conversation. 
 outils appelés, montants exacts, règles citées, montants interdits. Les réponses attendues sont recalculées par le
 moteur dans les tests. Détail dans [evals/RAPPORT.md](evals/RAPPORT.md).
 
-| Modèle (plan gratuit Gemini) | Questions réussies | Montants sans source | Latence médiane |
-|---|---|---|---|
-| `gemini-3.5-flash-lite` | 85 % (23/27) | 0 | 1,9 s |
-| `gemini-3.7-flash` | non évaluable : surcharges répétées puis quota journalier épuisé | — | — |
+| Modèle (plan gratuit Gemini) | Questions réussies | Montants sans source | Produits ou règles inexistants | Latence médiane |
+|---|---|---|---|---|
+| `gemini-3.5-flash-lite` | 93 % (25/27) | 0 | 0 | 1,9 s |
+| `gemini-3.7-flash` | non évaluable : surcharges répétées puis quota journalier épuisé | — | — | — |
 
 **Ce que l'évaluation a permis de corriger.** Pour un client en rachat de crédit, le modèle transmettait le segment
 `RACHAT_CREDIT` au lieu de `RACHAT`. Le taux négocié ne s'appliquait pas, et l'assistant annonçait 280 € au lieu de
@@ -53,9 +54,12 @@ moteur dans les tests. Détail dans [evals/RAPPORT.md](evals/RAPPORT.md).
 moteur, mais calculé sur une mauvaise donnée. Désormais, les segments autorisés sont imposés dans la définition de
 l'outil, et le service refuse tout segment inconnu. Le cas est réussi depuis.
 
+Depuis que la liste exacte des produits figure dans le prompt, plus aucun produit inventé n'a été relevé. Avant cela,
+une réponse citait des produits inexistants comme « Verdance Essentiel ».
+
 **Limites connues.**
-- Les scores varient d'une exécution à l'autre : deux passages ont donné 24 puis 23 questions réussies, sans échouer
-  sur les mêmes questions.
+- Les scores varient d'une exécution à l'autre : trois passages ont donné 24, 23 puis 25 questions réussies, sans
+  échouer sur les mêmes questions.
 - Les vérifications par mots-clés peuvent rejeter une réponse correcte formulée autrement.
 - Les échecs restants sont surtout des réponses incomplètes, par exemple une explication de taux qui ne cite pas le
   pourcentage.
@@ -133,7 +137,9 @@ python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul
 - **Montants en `Decimal`**, arrondis au centime de façon explicite : pas d'erreurs d'arrondi des flottants.
 - **Traçabilité complète.** Chaque ligne calculée porte l'identifiant de sa règle, la formule détaillée et la provenance du taux. Chaque contrat écarté porte un code d'exclusion.
 - **Une seule logique pour l'interface et l'assistant.** Les routes HTTP et les outils du modèle passent par les mêmes services et les mêmes modèles de validation.
-- **Garde-fous sur les chiffres en trois niveaux** : consigne du prompt, montants obtenus uniquement par les outils, contrôle a posteriori de chaque montant cité.
+- **Garde-fous sur les chiffres** : consigne du prompt, montants obtenus uniquement par les outils, valeurs qui changent le taux imposées par énumération, et contrôle a posteriori de chaque réponse (montants sans source, règles et produits inexistants).
+- **Citations vérifiables** : chaque réponse liste les règles citées et indique si le moteur les a réellement appliquées.
+- **Streaming Server-Sent Events** : outils lancés, résultats du moteur et texte arrivent au fil de l'eau.
 - **Boucle d'outils bornée**, avec une trace de chaque appel renvoyée au client.
 - **Indépendant du fournisseur de modèle.** Un client compatible OpenAI, Gemini par défaut (plan gratuit), et une chaîne de repli qui bascule sur le modèle suivant quand un modèle est saturé ou à court de quota.
 - **Tests sans réseau** : le modèle de langage est remplacé par un modèle scripté, ce qui permet de tester la boucle d'outils, la gestion des erreurs et le contrôle des montants.
@@ -144,7 +150,7 @@ python -m evals.run --model gemini-3.5-flash-lite --cases contrat-resilie,calcul
 - [x] **1. Données fictives et moteur de calcul déterministe**
 - [x] **2. API du moteur et appel d'outils par le LLM**
 - [x] **3. Jeu d'évaluation des réponses de l'assistant et score de fiabilité**
-- [ ] 4. Citations des règles dans les réponses, streaming
+- [x] **4. Citations des règles, contrôle des produits cités, streaming**
 - [ ] 5. Interface Next.js : chat, panneau « sous le capot », simulateur de contrat
 - [ ] 6. CI, conteneurisation, limitation de débit de la démo publique
 - [ ] 7. Démo en ligne et vidéo de présentation

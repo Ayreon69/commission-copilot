@@ -1,23 +1,25 @@
 {
   "model": "gemini-3.5-flash-lite",
   "provider": "https://generativelanguage.googleapis.com/v1beta/openai/",
-  "date": "2026-09-16T17:45:08+00:00",
+  "date": "2026-09-16T21:58:15+00:00",
   "dataset_version": 1,
   "complete": true,
-  "llm_calls": 53,
+  "llm_calls": 48,
   "summary": {
     "cases": 27,
     "evaluated": 27,
-    "passed": 23,
+    "passed": 25,
     "errors": 0,
-    "pass_rate": 0.852,
-    "checks_passed": 99,
-    "checks_total": 103,
+    "pass_rate": 0.926,
+    "checks_passed": 155,
+    "checks_total": 157,
     "unverified_amounts": 0,
+    "unknown_products": 0,
+    "unknown_rules": 0,
     "median_latency_s": 1.89,
     "by_category": {
       "explication": {
-        "passed": 7,
+        "passed": 8,
         "total": 9
       },
       "simulation": {
@@ -29,7 +31,7 @@
         "total": 5
       },
       "info_manquante": {
-        "passed": 1,
+        "passed": 2,
         "total": 2
       },
       "limites": {
@@ -57,7 +59,7 @@
         {
           "name": "arguments de lookup_sample_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'perimeter': 'SANTE_INDIV', 'contract_id': 'SI-RESILIE'}]"
+          "detail": "arguments reçus : [{'contract_id': 'SI-RESILIE', 'perimeter': 'SANTE_INDIV'}]"
         },
         {
           "name": "cite 1044.50 €",
@@ -73,22 +75,37 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Le contrat **SI-RESILIE** génère une reprise de **−1 044,50 €** (reprise partielle d'un contrat résilié, règle `R-RP2`).\n\n**Formule détaillée :**\n`(2 089,00 € × 120 % × 7/12) − (2 089,00 € × 120 %) = 1 462,30 € − 2 506,80 € = −1 044,50 €`\n\n**Explication :**\nLe contrat a été résilié en cours de vie. Seule la part de précompte correspondant à la période réellement couverte (7 mois sur 12, du 1er septembre 2025 au 15 mars 2026) reste acquise, soit 1 462,30 €. La différence avec le précompte initialement versé de 2 506,80 € (calculé au taux de 120 %) est donc reprise.",
+      "answer": "Le contrat SI-RESILIE donne une reprise de −1 044,50 € au titre d'une reprise partielle d'un contrat résilié (R-RP2). \n\nLa formule détaillée est la suivante :\n`(2 089,00 € × 120 % × 7/12) − (2 089,00 € × 120 %) = 1 462,30 € − 2 506,80 € = −1 044,50 €`\n\nLe taux de première année de 120 % provient de la grille année 1 du produit Nordale Santé Confort (depuis le 01/01/2018). Le contrat ayant été résilié en cours de première année (après 7 mois entamés sur une base de 12 mois), la part du précompte correspondant à la période non couverte est reprise.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "lookup_sample_contract",
           "arguments": {
-            "perimeter": "SANTE_INDIV",
-            "contract_id": "SI-RESILIE"
+            "contract_id": "SI-RESILIE",
+            "perimeter": "SANTE_INDIV"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 2.78
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-RP2"
+      ],
+      "latency_s": 2.61
     },
     {
       "id": "contrat-sans-effet",
@@ -104,7 +121,7 @@
         {
           "name": "arguments de lookup_sample_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'perimeter': 'SANTE_INDIV', 'contract_id': 'SI-SANS-EFFET'}]"
+          "detail": "arguments reçus : [{'contract_id': 'SI-SANS-EFFET', 'perimeter': 'SANTE_INDIV'}]"
         },
         {
           "name": "cite 1865.80 €",
@@ -120,22 +137,37 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour le contrat `SI-SANS-EFFET`, le moteur calcule une reprise de **−1 865,80 €** (commission de type RP).\n\nLa règle appliquée est la **reprise totale d'un contrat sans effet (`R-RP1`)**.\n\nVoici le détail de la formule :\n`−(1 964,00 € × 95 %) = −1 865,80 €`\n\nCe montant correspond au remboursement intégral du précompte versé le mois précédent, le contrat étant passé à l'état sans effet. Le taux de 95 % provient de la grille année 1 du produit Nordale Santé Essentiel.",
+      "answer": "Pour le contrat Nordale Santé Essentiel (référence SI-SANS-EFFET), une reprise totale de −1 865,80 € est appliquée ce mois-ci, en raison d'une reprise totale d'un contrat sans effet (R-RP1).\n\nLa formule détaillée est la suivante : −(1 964,00 € × 95 %) = −1 865,80 €, le taux de 95 % provenant de la grille année 1 du produit Nordale Santé Essentiel (depuis le 01/01/2024).\n\nCe contrat, initialement actif le mois précédent, est passé à l'état « sans effet » ce mois-ci, ce qui déclenche l'annulation intégrale du précompte versé à l'origine.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "lookup_sample_contract",
           "arguments": {
-            "perimeter": "SANTE_INDIV",
-            "contract_id": "SI-SANS-EFFET"
+            "contract_id": "SI-SANS-EFFET",
+            "perimeter": "SANTE_INDIV"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 2.11
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-RP1"
+      ],
+      "latency_s": 2.4
     },
     {
       "id": "contrat-stable",
@@ -157,22 +189,35 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Le contrat **SI-STABLE** ne rapporte rien en mars pour deux raisons :\n\n1. **Pour la commission de première année (précompte) :** le contrat est déjà présent le mois précédent avec la même clé, de sorte qu'il a déjà été commissionné lors de son apparition (code d'exclusion : `ALREADY_KNOWN`).\n2. **Pour la commission des années suivantes (linéaire) :** la cotisation encaissée en mars est une cotisation de première année, dont l'exposition est inférieure ou égale à 1 au début de la période couverte. Elle est donc déjà couverte par le précompte initial (code d'exclusion : `LINEAR_FIRST_YEAR`).",
+      "answer": "Le contrat SI-STABLE (Nordale Santé Senior) ne produit aucune commission en mars pour deux raisons :\n\n- Pour le précompte, il est déjà présent le mois précédent avec la même clé et aucune modification, sa commission ayant déjà été versée lors de son apparition (déjà connu, `ALREADY_KNOWN`).\n- Pour la cotisation encaissée en mars, elle ne donne pas lieu à un linéaire car elle se situe encore dans la première année du contrat, période déjà couverte par le précompte (cotisation de première année, `LINEAR_FIRST_YEAR`).",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "lookup_sample_contract",
           "arguments": {
-            "perimeter": "SANTE_INDIV",
-            "contract_id": "SI-STABLE"
+            "contract_id": "SI-STABLE",
+            "perimeter": "SANTE_INDIV"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.93
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 2.05
     },
     {
       "id": "contrat-anomalie",
@@ -204,9 +249,19 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Le contrat AN-ANOMALIE n'a produit aucune commission car il présente une transition d'état incohérente entre le mois précédent (sans effet) et le mois de calcul (résilié). \n\nUn contrat qui n'a jamais démarré ne peut pas être résilié, et inversement. Cette situation a donc été écartée par le moteur de calcul pour contrôle (`STATE_ANOMALY`).",
+      "answer": "Le contrat AN-ANOMALIE (produit Verdance Compagnon Plus) n'a produit aucune commission en raison d'une anomalie de transition d'état. \n\nLe contrat est passé directement d'un état sans effet à un état résilié (passage incohérent entre sans effet et résilié, `STATE_ANOMALY`). Un contrat qui n'a jamais démarré ne peut pas être résilié, et aucun précompte n'ayant jamais été versé, il n'y a pas de reprise à effectuer.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
@@ -219,7 +274,10 @@
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.62
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.91
     },
     {
       "id": "contrat-hausse-prime",
@@ -246,33 +304,48 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Le contrat SI-HAUSSE-PRIME génère un précompte complémentaire de **96,36 €** (commission de type P).\n\nCette commission est calculée selon la règle de régularisation d'un changement de prime (R-REG). \n\nLa formule détaillée est la suivante : \n1 766,60 € × 60 % − 1 606,00 € × 60 % = 96,36 €\n\nSur le périmètre de la santé individuelle, un contrat déjà connu dont la prime augmente fait l'objet d'un ajustement calculé sur la différence entre la nouvelle et l'ancienne prime, en appliquant le taux de première année du produit (ici 60 %, issu de la grille du produit Nordale Santé Senior en vigueur à la date de souscription).",
+      "answer": "Sur le contrat Nordale Santé Senior, la hausse de prime a généré un précompte complémentaire de **96,36 €** (règles de régularisation d'un changement de prime [R-REG]).\n\nLa formule détaillée est la suivante :\n1 766,60 € × 60 % − 1 606,00 € × 60 % = 96,36 €\n\nCe montant correspond à l'ajustement calculé sur la différence de prime annuelle, en appliquant le taux de 60 % issu de la grille du produit en vigueur à la date de souscription.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "lookup_sample_contract",
           "arguments": {
-            "contract_id": "SI-HAUSSE-PRIME",
-            "perimeter": "SANTE_INDIV"
+            "perimeter": "SANTE_INDIV",
+            "contract_id": "SI-HAUSSE-PRIME"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 2.13
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-REG"
+      ],
+      "latency_s": 1.89
     },
     {
       "id": "contrat-portefeuille-repris",
       "category": "explication",
       "question": "Pourquoi le contrat MIG-AN-NOUVEAU est-il commissionné à un taux plus bas que les autres contrats animaux ?",
-      "status": "failed",
+      "status": "passed",
       "checks": [
         {
           "name": "appelle lookup_sample_contract ou get_perimeter_details",
           "passed": true,
-          "detail": "outils appelés avec succès : get_perimeter_details"
+          "detail": "outils appelés avec succès : lookup_sample_contract"
         },
         {
           "name": "mentionne « repris »",
@@ -281,28 +354,44 @@
         },
         {
           "name": "mentionne « 20 % » ou « 20% »",
-          "passed": false,
+          "passed": true,
           "detail": ""
         },
         {
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Sur le périmètre de la santé animale, le numéro du contrat commence par le préfixe `MIG`. \n\nCela indique qu'il s'agit d'un contrat repris d'un autre courtier. Il est automatiquement rattaché au produit « Verdance Compagnon (portefeuille repris) », qui bénéficie d'un taux de première année spécifique et plus bas que les autres contrats de la gamme.",
+      "answer": "Les contrats commençant par `MIG` sont des contrats repris d'un autre courtier. Ils sont rattachés au produit « Verdance Compagnon (portefeuille repris) » et bénéficient d'une grille de taux spécifique, plus basse que celle des contrats standards. \n\nPar exemple, pour ce contrat, le précompte est calculé avec un taux de 20 % (issu de la grille du produit Verdance Compagnon (portefeuille repris)), ce qui donne un montant de 73,80 € (précompte, règle R-P1 : 369,00 € × 20 % = 73,80 €).",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
-          "name": "get_perimeter_details",
+          "name": "lookup_sample_contract",
           "arguments": {
-            "perimeter": "ANIMAUX"
+            "perimeter": "ANIMAUX",
+            "contract_id": "MIG-AN-NOUVEAU"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.89
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-P1"
+      ],
+      "latency_s": 2.0
     },
     {
       "id": "contrat-taux-negocie",
@@ -318,7 +407,7 @@
         {
           "name": "arguments de lookup_sample_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'perimeter': 'EMPRUNTEUR', 'contract_id': 'EM-TAUX-SPECIFIQUE-1'}]"
+          "detail": "arguments reçus : [{'contract_id': 'EM-TAUX-SPECIFIQUE-1', 'perimeter': 'EMPRUNTEUR'}]"
         },
         {
           "name": "mentionne « primo »",
@@ -334,22 +423,35 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour le contrat **EM-TAUX-SPECIFIQUE-1** (sur le périmètre Assurance emprunteur), le taux appliqué provient d'un **taux spécifique : Primo-accédants : taux négocié**.",
+      "answer": "Pour le contrat EM-TAUX-SPECIFIQUE-1, le taux appliqué provient du taux spécifique du périmètre pour les primo-accédants (segment primo-accédants : taux négocié).",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "lookup_sample_contract",
           "arguments": {
-            "perimeter": "EMPRUNTEUR",
-            "contract_id": "EM-TAUX-SPECIFIQUE-1"
+            "contract_id": "EM-TAUX-SPECIFIQUE-1",
+            "perimeter": "EMPRUNTEUR"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.93
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.65
     },
     {
       "id": "contrat-effet-differe",
@@ -365,7 +467,7 @@
         {
           "name": "arguments de lookup_sample_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'contract_id': 'DE-EFFET-DIFFERE', 'perimeter': 'DEPENDANCE'}]"
+          "detail": "arguments reçus : [{'perimeter': 'DEPENDANCE', 'contract_id': 'DE-EFFET-DIFFERE'}]"
         },
         {
           "name": "mentionne « effet »",
@@ -381,22 +483,35 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Le contrat DE-EFFET-DIFFERE est écarté du calcul avec le code `FUTURE_EFFECT` (« Date d'effet trop éloignée dans le futur »). \n\nSur le périmètre de l'autonomie senior, les contrats dont la date d'effet est prévue trop longtemps après le mois de calcul (ici, une date d'effet au 01/08/2026 alors que la limite est fixée au 01/07/2026) sont mis de côté temporairement. Ils seront traités automatiquement lorsque leur date d'effet se rapprochera du mois de calcul.",
+      "answer": "Le contrat `DE-EFFET-DIFFERE` est écarté du calcul car sa date d'effet est trop éloignée dans le futur (code d'exclusion `FUTURE_EFFECT`). \n\nSur ce périmètre, l'outil indique que la date d'effet fixée au 01/08/2026 dépasse la limite du 01/07/2026 pour le mois de calcul. Il sera traité ultérieurement lorsque sa date d'effet se rapprochera.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "lookup_sample_contract",
           "arguments": {
-            "contract_id": "DE-EFFET-DIFFERE",
-            "perimeter": "DEPENDANCE"
+            "perimeter": "DEPENDANCE",
+            "contract_id": "DE-EFFET-DIFFERE"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.93
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.67
     },
     {
       "id": "contrat-sans-regularisation",
@@ -412,7 +527,7 @@
         {
           "name": "arguments de lookup_sample_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'contract_id': 'PT-HAUSSE-PRIME', 'perimeter': 'PREVOYANCE_TNS'}]"
+          "detail": "arguments reçus : [{'perimeter': 'PREVOYANCE_TNS', 'contract_id': 'PT-HAUSSE-PRIME'}]"
         },
         {
           "name": "mentionne « regularisation »",
@@ -428,16 +543,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Sur le périmètre de la prévoyance des indépendants, les règles de calcul ne prévoient pas de régularisation en cas de changement de prime sur un contrat existant. \n\nBien que la prime annuelle soit passée de 1 065 € à 1 171,50 €, le contrat est considéré comme déjà connu avec la même clé de rapprochement. Cette modification de prime est donc écartée sans générer de régularisation.",
+      "answer": "Sur le périmètre de la prévoyance des indépendants, le règlement ne prévoit pas de régularisation en cas de changement de prime en cours de vie du contrat. \n\nBien que la prime ait augmenté, le contrat est déjà connu depuis le mois précédent avec la même clé de rapprochement, et les règles de ce périmètre n'ajustent pas le précompte initial lorsque la cotisation évolue.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "lookup_sample_contract",
           "arguments": {
-            "contract_id": "PT-HAUSSE-PRIME",
-            "perimeter": "PREVOYANCE_TNS"
+            "perimeter": "PREVOYANCE_TNS",
+            "contract_id": "PT-HAUSSE-PRIME"
           },
           "ok": true
         },
@@ -450,7 +575,10 @@
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 3.52
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 2.62
     },
     {
       "id": "simulation-nouvelle-affaire",
@@ -461,12 +589,12 @@
         {
           "name": "appelle simulate_contract",
           "passed": true,
-          "detail": "outils appelés avec succès : get_perimeter_details, simulate_contract"
+          "detail": "outils appelés avec succès : simulate_contract"
         },
         {
           "name": "arguments de simulate_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'perimeter': 'SANTE_INDIV', 'month': '2026-03', 'contract': {'subscription_date': '2026-02-20', 'state': 'AFN', 'product': 'NS-CONFORT', 'effective_date': '2026-03-01', 'annual_premium': 1500}}]"
+          "detail": "arguments reçus : [{'contract': {'state': 'AFN', 'subscription_date': '2026-02-20', 'product': 'NS-CONFORT', 'effective_date': '2026-03-01', 'annual_premium': 1500}, 'perimeter': 'SANTE_INDIV', 'month': '2026-03'}]"
         },
         {
           "name": "cite 1800.00 €",
@@ -482,36 +610,44 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour ce contrat Nordale Santé Confort, la commission de mars 2026 est un précompte de **1 800,00 €**.\n\nLa règle appliquée est le précompte d'une affaire nouvelle (R-P1), selon la formule suivante : \n1 500,00 € × 120 % = 1 800,00 €\n\nLe taux de 120 % est issu de la grille de première année du produit Nordale Santé Confort (en vigueur depuis le 01/01/2018). Il s'agit d'une affaire nouvelle active qui génère son précompte dès sa première apparition.",
+      "answer": "Pour ce contrat Nordale Santé Confort, la commission de mars 2026 s'élève à **1 800,00 €** au titre du précompte (R-P1). \n\nLa formule appliquée est la suivante : 1 500,00 € × 120 % = 1 800,00 €, le taux de 120 % étant issu de la grille de première année du produit (en vigueur depuis le 01/01/2018).\n\nIl s'agit d'une affaire nouvelle active, pour laquelle le précompte de première année est versé en totalité dès le démarrage du contrat.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
-          "name": "get_perimeter_details",
-          "arguments": {
-            "perimeter": "SANTE_INDIV"
-          },
-          "ok": true
-        },
-        {
           "name": "simulate_contract",
           "arguments": {
-            "perimeter": "SANTE_INDIV",
-            "month": "2026-03",
             "contract": {
-              "subscription_date": "2026-02-20",
               "state": "AFN",
+              "subscription_date": "2026-02-20",
               "product": "NS-CONFORT",
               "effective_date": "2026-03-01",
               "annual_premium": 1500
-            }
+            },
+            "perimeter": "SANTE_INDIV",
+            "month": "2026-03"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 2.8
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-P1"
+      ],
+      "latency_s": 2.04
     },
     {
       "id": "simulation-sans-effet",
@@ -527,7 +663,7 @@
         {
           "name": "arguments de simulate_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'perimeter': 'SANTE_INDIV', 'month': '2026-03', 'contract': {'product': 'NS-ESSENTIEL', 'state': 'SEF', 'effective_date': '2026-02-01', 'annual_premium': 1000, 'subscription_date': '2026-01-15'}, 'previous_month': {'state': 'AFN'}}]"
+          "detail": "arguments reçus : [{'previous_month': {'state': 'AFN'}, 'month': '2026-03', 'perimeter': 'SANTE_INDIV', 'contract': {'product': 'NS-ESSENTIEL', 'state': 'SEF', 'subscription_date': '2026-01-15', 'effective_date': '2026-02-01', 'annual_premium': 1000}}]"
         },
         {
           "name": "cite 950.00 €",
@@ -543,32 +679,47 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "−950,00 € en reprise (reprise totale d'un contrat sans effet, règle R-RP1).\n\nFormule :\n−(1 000,00 € × 95 %) = −950,00 €\n\nComme le contrat passe sans effet en mars 2026 après avoir été actif en février, le précompte versé initialement est intégralement repris. Le taux de 95 % provient de la grille de première année du produit Nordale Santé Essentiel.",
+      "answer": "Le passage de ce contrat à l'état sans effet en mars 2026 déclenche une reprise de commission.\n\n- **Montant net :** −950,00 € (reprise totale).\n- **Règle appliquée :** reprise totale d'un contrat sans effet (`R-RP1`).\n- **Formule :** `−(1 000,00 € × 95 %) = −950,00 €`.\n- **Origine du taux :** grille année 1 du produit Nordale Santé Essentiel (depuis le 01/01/2024).\n\nLe contrat n'ayant jamais réellement démarré (sans effet), le précompte versé le mois précédent est intégralement repris.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
           "name": "simulate_contract",
           "arguments": {
-            "perimeter": "SANTE_INDIV",
+            "previous_month": {
+              "state": "AFN"
+            },
             "month": "2026-03",
+            "perimeter": "SANTE_INDIV",
             "contract": {
               "product": "NS-ESSENTIEL",
               "state": "SEF",
+              "subscription_date": "2026-01-15",
               "effective_date": "2026-02-01",
-              "annual_premium": 1000,
-              "subscription_date": "2026-01-15"
-            },
-            "previous_month": {
-              "state": "AFN"
+              "annual_premium": 1000
             }
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.92
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-RP1"
+      ],
+      "latency_s": 2.06
     },
     {
       "id": "simulation-resiliation-animaux",
@@ -579,12 +730,12 @@
         {
           "name": "appelle simulate_contract",
           "passed": true,
-          "detail": "outils appelés avec succès : get_perimeter_details, simulate_contract"
+          "detail": "outils appelés avec succès : simulate_contract"
         },
         {
           "name": "arguments de simulate_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'month': '2026-03', 'perimeter': 'ANIMAUX', 'previous_month': {'state': 'AFN'}, 'contract': {'effective_date': '2025-11-01', 'state': 'RES', 'subscription_date': '2025-10-20', 'end_date': '2026-03-31', 'annual_premium': 480, 'product': 'VA-COMPAGNON'}}]"
+          "detail": "arguments reçus : [{'perimeter': 'ANIMAUX', 'contract': {'subscription_date': '2025-10-20', 'product': 'VA-COMPAGNON', 'annual_premium': 480, 'effective_date': '2025-11-01', 'state': 'RES', 'end_date': '2026-03-31'}, 'month': '2026-03', 'previous_month': {'state': 'AFN'}}]"
         },
         {
           "name": "cite 98.50 €",
@@ -600,40 +751,48 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Une reprise de **−98,50 €** est effectuée au titre d'une reprise (reprise partielle d'un contrat résilié, R-RP2).\n\n**Formule détaillée :**\n`(480,00 € × 35 % × 151/365) − (480,00 € × 35 %) = 69,50 € − 168,00 € = −98,50 €`\n\nLe contrat étant résilié en cours de première année, la commission d'avance versée à la souscription est recalculée au prorata de l'exposition réelle (calculée ici sur une base de 365 jours jusqu'à la date anniversaire), et la différence est reprise. Le taux de 35 % provient de la grille de première année du produit Verdance Compagnon.",
+      "answer": "−98,50 € au titre d'une reprise, selon la règle de la reprise partielle d'un contrat résilié (R-RP2). \n\nLa formule détaillée est la suivante : (480,00 € × 35 % × 151/365) − (480,00 € × 35 %) = 69,50 € − 168,00 € = −98,50 €. \n\nLe taux de 35 % est issu de la grille de première année du produit Verdance Compagnon. Le contrat ayant pris fin avant terme, une partie du précompte versé à l'origine est ainsi reprise au prorata de la période réellement couverte.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
-          "name": "get_perimeter_details",
-          "arguments": {
-            "perimeter": "ANIMAUX"
-          },
-          "ok": true
-        },
-        {
           "name": "simulate_contract",
           "arguments": {
-            "month": "2026-03",
             "perimeter": "ANIMAUX",
-            "previous_month": {
-              "state": "AFN"
-            },
             "contract": {
+              "subscription_date": "2025-10-20",
+              "product": "VA-COMPAGNON",
+              "annual_premium": 480,
               "effective_date": "2025-11-01",
               "state": "RES",
-              "subscription_date": "2025-10-20",
-              "end_date": "2026-03-31",
-              "annual_premium": 480,
-              "product": "VA-COMPAGNON"
+              "end_date": "2026-03-31"
+            },
+            "month": "2026-03",
+            "previous_month": {
+              "state": "AFN"
             }
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 3.7
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-RP2"
+      ],
+      "latency_s": 19.05
     },
     {
       "id": "simulation-taux-rachat",
@@ -644,12 +803,12 @@
         {
           "name": "appelle simulate_contract",
           "passed": true,
-          "detail": "outils appelés avec succès : get_perimeter_details, simulate_contract"
+          "detail": "outils appelés avec succès : simulate_contract"
         },
         {
           "name": "arguments de simulate_contract",
           "passed": true,
-          "detail": "arguments reçus : [{'perimeter': 'EMPRUNTEUR', 'month': '2026-03', 'contract': {'subscription_date': '2026-02-25', 'annual_premium': 800, 'segment': 'RACHAT', 'product': 'NE-EMPRUNT-CLASSIQUE', 'state': 'AFN', 'effective_date': '2026-03-01'}}]"
+          "detail": "arguments reçus : [{'contract': {'state': 'AFN', 'subscription_date': '2026-02-25', 'segment': 'RACHAT', 'effective_date': '2026-03-01', 'annual_premium': 800, 'product': 'NE-EMPRUNT-CLASSIQUE'}, 'perimeter': 'EMPRUNTEUR', 'month': '2026-03'}]"
         },
         {
           "name": "cite 336.00 €",
@@ -660,37 +819,45 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour ce contrat, le montant de la commission en mars 2026 s'élève à **336,00 €** au titre du précompte. \n\nLa règle appliquée est le précompte d'une affaire nouvelle (R-P1). La formule détaillée est la suivante : 800,00 € × 42 % = 336,00 €.\n\nLe taux de 42 % provient du taux spécifique négocié pour un changement d'assurance après un rachat de crédit.",
+      "answer": "336,00 € au titre du précompte (précompte d'une affaire nouvelle (R-P1)), selon la formule : 800,00 € × 42 % = 336,00 €.\n\nCe montant applique le taux spécifique de 42 % prévu pour les contrats en changement d'assurance après rachat de crédit.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
-          "name": "get_perimeter_details",
-          "arguments": {
-            "perimeter": "EMPRUNTEUR"
-          },
-          "ok": true
-        },
-        {
           "name": "simulate_contract",
           "arguments": {
-            "perimeter": "EMPRUNTEUR",
-            "month": "2026-03",
             "contract": {
-              "subscription_date": "2026-02-25",
-              "annual_premium": 800,
-              "segment": "RACHAT",
-              "product": "NE-EMPRUNT-CLASSIQUE",
               "state": "AFN",
-              "effective_date": "2026-03-01"
-            }
+              "subscription_date": "2026-02-25",
+              "segment": "RACHAT",
+              "effective_date": "2026-03-01",
+              "annual_premium": 800,
+              "product": "NE-EMPRUNT-CLASSIQUE"
+            },
+            "perimeter": "EMPRUNTEUR",
+            "month": "2026-03"
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 2.8
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-P1"
+      ],
+      "latency_s": 2.27
     },
     {
       "id": "simulation-regularisation",
@@ -701,7 +868,7 @@
         {
           "name": "appelle simulate_contract",
           "passed": true,
-          "detail": "outils appelés avec succès : get_perimeter_details, simulate_contract"
+          "detail": "outils appelés avec succès : simulate_contract"
         },
         {
           "name": "cite 144.00 €",
@@ -717,40 +884,48 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Le changement de prime génère un précompte complémentaire de 144,00 € (commission de type P). \n\nLa règle appliquée est la régularisation d'un changement de prime (R-REG). La formule détaillée est la suivante :\n1 320,00 € × 120 % − 1 200,00 € × 120 % = 144,00 €\n\nSur ce périmètre, un contrat actif dont la prime augmente conserve la même clé de rapprochement, ce qui déclenche un ajustement calculé sur la différence entre la nouvelle et l'ancienne prime, au taux de première année (120 %) fixé lors de la souscription.",
+      "answer": "Le changement de prime génère un précompte complémentaire de 144,00 €.\n\nLa règle appliquée est la régularisation d'un changement de prime (R-REG). \n\nLa formule détaillée est la suivante : 1 320,00 € × 120 % − 1 200,00 € × 120 % = 144,00 €.\n\nCe montant correspond à l'ajustement du précompte calculé sur la différence de prime, en appliquant le taux de 120 % issu de la grille de première année du produit Nordale Santé Confort.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
-          "name": "get_perimeter_details",
-          "arguments": {
-            "perimeter": "SANTE_INDIV"
-          },
-          "ok": true
-        },
-        {
           "name": "simulate_contract",
           "arguments": {
-            "previous_month": {
-              "state": "AFN",
-              "annual_premium": 1200
-            },
             "month": "2026-03",
+            "perimeter": "SANTE_INDIV",
             "contract": {
-              "effective_date": "2026-02-01",
               "subscription_date": "2026-01-10",
+              "product": "NS-CONFORT",
               "annual_premium": 1320,
               "state": "AFN",
-              "product": "NS-CONFORT"
+              "effective_date": "2026-02-01"
             },
-            "perimeter": "SANTE_INDIV"
+            "previous_month": {
+              "annual_premium": 1200,
+              "state": "AFN"
+            }
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 49.82
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [
+        "R-REG"
+      ],
+      "latency_s": 2.05
     },
     {
       "id": "simulation-contrat-ancien",
@@ -772,9 +947,19 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Ce contrat ne génère aucun précompte en mars 2026. \n\nIl a été exclu du calcul pour le motif suivant :\n- **Contrat ancien** (`OLD_CONTRACT`) : il est en portefeuille depuis plus d'un an, ce qui dépasse le seuil d'ancienneté du périmètre de la santé individuelle. Son précompte est donc acquis depuis longtemps.",
+      "answer": "Ce contrat ne génère aucun précompte en mars 2026. \n\nIl a été exclu du calcul du précompte en raison de son ancienneté (« Contrat ancien : précompte déjà acquis »). Comme il est en portefeuille depuis plus d'un an, son précompte est acquis depuis longtemps et il ne relève plus du précompte. Ses cotisations continuent en revanche de produire du linéaire.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
@@ -783,18 +968,21 @@
             "month": "2026-03",
             "perimeter": "SANTE_INDIV",
             "contract": {
-              "state": "AFN",
+              "subscription_date": "2024-11-20",
               "product": "NS-CONFORT",
               "annual_premium": 1500,
               "effective_date": "2024-12-01",
-              "subscription_date": "2024-11-20"
+              "state": "AFN"
             }
           },
           "ok": true
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.9
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.65
     },
     {
       "id": "regle-precompte-lineaire",
@@ -816,13 +1004,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Chez Opaline Courtage, les deux modes de rémunération se distinguent par leur moment de versement et leur mode de calcul :\n\n- **Le précompte (P)** est une commission de première année versée d'avance, dès la souscription du contrat. Il est calculé en une seule fois sur la base de la prime annuelle hors taxes et d'un taux de première année. Si le contrat s'arrête prématurément, une partie de ce montant est remboursée à l'assureur sous forme de reprise (RP).\n- **Le linéaire (L)** est la commission des années suivantes (années 2 et au-delà). Elle est versée au fil de l'eau, au rythme des cotisations réellement encaissées chaque mois, en appliquant un taux spécifique au produit.",
+      "answer": "Chez Opaline Courtage, la commission d'un contrat se répartit généralement entre deux modes de versement :\n\n- **Le précompte (P)** : c'est une commission de première année versée d'avance dès la souscription, calculée sur la prime annuelle hors taxes. Si le contrat s'arrête prématurément, une partie de ce précompte peut être remboursée à l'assureur sous forme de reprise.\n- **Le linéaire (L)** : c'est une commission versée au fil de l'eau, au rythme des cotisations réellement encaissées au cours des années suivantes (années 2 et suivantes).",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 1.23
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.24
     },
     {
       "id": "regle-rapprochement",
@@ -839,13 +1040,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Lorsqu'un contrat est présent deux mois de suite avec la même clé d'identification (par exemple, le même numéro de contrat, le même état actif et la même date de souscription), le moteur considère qu'il a déjà été commissionné au moment de son apparition (règle *ALREADY_KNOWN*). \n\nPuisque sa situation n'a pas changé entre le mois précédent et le mois de calcul, aucun nouveau mouvement (ni précompte, ni régularisation) n'est généré.",
+      "answer": "Lorsqu'un contrat est présent deux mois de suite avec la même situation (par exemple, un contrat actif le mois dernier et toujours actif ce mois-ci), il possède exactement la même clé de rapprochement. \n\nLe moteur de calcul considère alors qu'il a déjà été commissionné lors de son apparition (règle *ALREADY_KNOWN*). Puisque le précompte de première année a déjà été versé et que la situation n'a pas changé, aucun nouveau mouvement ni aucune commission supplémentaire ne sont générés.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 1.23
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.14
     },
     {
       "id": "taux-grille-datee",
@@ -867,9 +1081,19 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour le produit Nordale Santé Essentiel (périmètre Santé individuelle), le taux de précompte (première année) applicable pour un contrat souscrit en juin 2023 est de **80 %** (grille en vigueur du 1er janvier 2018 au 31 décembre 2023).",
+      "answer": "Pour un contrat Nordale Santé Essentiel souscrit en juin 2023, le taux de précompte (première année) est de 80 %.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
@@ -881,7 +1105,10 @@
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.73
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.51
     },
     {
       "id": "parametre-anciennete-emprunteur",
@@ -903,9 +1130,19 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour les contrats d'assurance emprunteur, la limite d'ancienneté est fixée à 25 mois. Un contrat dont la date d'effet précède cette limite est écarté du calcul.",
+      "answer": "Pour les contrats d'assurance emprunteur, la limite d'ancienneté est fixée à 25 mois. Un contrat dont la date d'effet précède cette limite par rapport au mois de calcul est écarté.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [
         {
@@ -917,7 +1154,10 @@
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.7
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 17.92
     },
     {
       "id": "parametre-p2-prevoyance",
@@ -934,21 +1174,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
-        }
-      ],
-      "answer": "En Prévoyance des indépendants, les cotisations de type P2 ne donnent pas droit à une commission linéaire (code d'exclusion `LINEAR_PREMIUM_TYPE`).",
-      "model": "gemini-3.5-flash-lite",
-      "tool_calls": [
+        },
         {
-          "name": "get_perimeter_details",
-          "arguments": {
-            "perimeter": "PREVOYANCE_TNS"
-          },
-          "ok": true
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
+      "answer": "En prévoyance des indépendants, les cotisations de type P2 ne donnent pas droit à une commission linéaire (`LINEAR_PREMIUM_TYPE`).",
+      "model": "gemini-3.5-flash-lite",
+      "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 1.59
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 0.68
     },
     {
       "id": "info-manquante-simulation",
@@ -975,19 +1220,32 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour chiffrer la commission sur un contrat **Nordale Santé Confort** (produit `NS-CONFORT` sur le périmètre Santé individuelle, `SANTE_INDIV`), j'ai besoin de quelques précisions supplémentaires :\n\n- La **date de souscription** du contrat (qui détermine le taux applicable dans la grille).\n- La **date d'effet** du contrat.\n- La **prime annuelle hors taxes** en euros.\n- L'**état** du contrat (actif, résilié, etc.) et, s'il s'agit d'un mois de calcul particulier ou d'une résiliation, sa situation le mois précédent.\n- Éventuellement, s'il s'agit d'un renfort dentaire optionnel (`RENFORT-DENTAIRE`).\n\nDès que vous me communiquez ces informations, je pourrai lancer la simulation !",
+      "answer": "Pour chiffrer la commission d'un contrat Nordale Santé Confort, j'ai besoin de quelques informations complémentaires :\n\n- L'état du contrat (actif, sans effet ou résilié)\n- La date de souscription\n- La date d'effet\n- Le montant de la prime annuelle hors taxes\n- Éventuellement, s'il s'agit d'un renfort dentaire optionnel ou d'un changement par rapport au mois précédent (résiliation, modification de prime)\n\nPourriez-vous me préciser ces éléments ?",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 1.42
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.05
     },
     {
       "id": "info-manquante-resiliation",
       "category": "info_manquante",
       "question": "Mon client a résilié son contrat d'assurance animale, combien dois-je rembourser ?",
-      "status": "failed",
+      "status": "passed",
       "checks": [
         {
           "name": "mentionne « date »",
@@ -1006,20 +1264,33 @@
         },
         {
           "name": "demande les informations manquantes",
-          "passed": false,
+          "passed": true,
           "detail": ""
         },
         {
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Pour pouvoir vous indiquer le montant de la reprise (le remboursement), j'aurais besoin de quelques informations complémentaires sur le contrat :\n\n1. Le **numéro** ou le **produit** exact (par exemple, *Verdance Essentiel*, *Verdance Confort*, *Verdance Senior* ou *Verdance Compagnon*).\n2. Le **montant de la prime annuelle HT**.\n3. La **date de souscription** (ou l'année d'effet) pour identifier le taux applicable.\n4. La **date d'effet** et la **date de résiliation**.\n5. Éventuellement, le mois de calcul concerné (par défaut, mars 2026).\n\nDès que vous me fournirez ces éléments, je pourrai lancer la simulation pour vous donner le montant exact de la reprise et le détail du calcul.",
+      "answer": "Pour pouvoir calculer le montant à rembourser suite à cette résiliation, j'ai besoin de quelques informations complémentaires sur le contrat :\n\n- Le **produit** exact parmi ceux de la santé animale (Verdance Compagnon, Verdance Compagnon Plus ou Verdance Compagnon (portefeuille repris))\n- La **prime annuelle** hors taxes\n- La **date de souscription**\n- La **date d'effet** du contrat\n- La **date de résiliation**\n\nIndiquez-moi ces éléments et je lancerai la simulation pour vous donner le montant exact de la reprise.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 1.41
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 2.11
     },
     {
       "id": "calcul-mental",
@@ -1036,13 +1307,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Je ne peux pas effectuer ce calcul moi-même, conformément à mes consignes qui m'interdisent de faire le moindre calcul de tête ou de l'exécuter hors du moteur officiel.",
+      "answer": "Je ne peux pas effectuer ce calcul de tête, car ma règle absolue m'interdit de calculer le moindre montant moi-même. \n\nDe plus, je ne traite que les questions relatives aux commissions de courtage d'Opaline Courtage. Si tu as besoin de chiffrer un contrat réel avec le moteur officiel, n'hésite pas à me donner ses caractéristiques !",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 0.92
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.01
     },
     {
       "id": "assureur-reel",
@@ -1064,13 +1348,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Opaline Courtage travaille exclusivement avec **Nordale Assurances** pour son périmètre de santé individuelle (et non avec AXA). \n\nPour ce périmètre, les taux de commission de première année dépendent des produits et de leur date de souscription (selon les grilles de taux du produit), avec des taux spécifiques comme le renfort dentaire optionnel fixé à 20 %.",
+      "answer": "Toutes les données de courtage d'Opaline Courtage sont fictives et je ne peux pas vous renseigner sur des assureurs réels comme AXA. \n\nEn santé individuelle, l'assureur partenaire d'Opaline Courtage est **Nordale Assurances** (périmètre `SANTE_INDIV`). Ses produits sont le *Nordale Santé Essentiel*, le *Nordale Santé Confort* et le *Nordale Santé Senior*. \n\nSi vous souhaitez connaître le détail des taux ou simuler le calcul d'une commission pour l'un de ces produits, n'hésitez pas à me l'indiquer !",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 0.99
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.03
     },
     {
       "id": "perimetre-arrete",
@@ -1092,13 +1389,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Je ne peux pas simuler ce contrat car le périmètre **Obsèques** (assuré par Mutuelle Verdance) est un périmètre arrêté et ne fait l'objet d'aucun calcul de commission.",
+      "answer": "Le périmètre « Obsèques » (produit Verdance Obsèques) est arrêté : ce périmètre n'est plus actif chez Opaline Courtage et aucun calcul de commission n'y est effectué.",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 0.85
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 0.81
     },
     {
       "id": "hors-sujet",
@@ -1125,13 +1435,26 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
-      "answer": "Je ne peux pas répondre à cette question, car je suis un assistant spécialisé dans le calcul et l'explication des commissions pour Opaline Courtage. Je ne dispose d'aucune information sur la météo.",
+      "answer": "Je ne peux pas répondre à cette question, car je suis un assistant spécialisé dans le calcul des commissions de courtage en assurance pour Opaline Courtage. \n\nSi vous avez des questions concernant le calcul d'une commission, un périmètre, un produit ou une règle de commissionnement, n'hésitez pas à me solliciter !",
       "model": "gemini-3.5-flash-lite",
       "tool_calls": [],
       "unverified_amounts": [],
-      "latency_s": 0.91
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 0.84
     },
     {
       "id": "suivi-conversation",
@@ -1148,6 +1471,16 @@
           "name": "tous les montants ont une source",
           "passed": true,
           "detail": "montants sans source : "
+        },
+        {
+          "name": "aucun produit inexistant",
+          "passed": true,
+          "detail": "produits inexistants : "
+        },
+        {
+          "name": "aucune règle inexistante",
+          "passed": true,
+          "detail": "règles inexistantes : "
         }
       ],
       "answer": "Pour un contrat Nordale Santé Essentiel souscrit en 2025, le taux de précompte est de 95 %.",
@@ -1162,7 +1495,10 @@
         }
       ],
       "unverified_amounts": [],
-      "latency_s": 1.49
+      "unknown_products": [],
+      "unknown_rules": [],
+      "cited_rules": [],
+      "latency_s": 1.34
     }
   ]
 }

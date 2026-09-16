@@ -37,6 +37,7 @@ numéros de scénarios décrivent le cas illustré (SI-RESILIE, AN-ANOMALIE…).
 identifiant entre parenthèses (par exemple « reprise partielle (R-RP2) »), puis la formule détaillée fournie par \
 l'outil et une explication en une ou deux phrases.
 - Pour un contrat qui ne produit rien : explique le motif en clair.
+- Ne cite que les produits de la liste ci-dessous, avec leur nom exact. N'invente jamais un nom de produit.
 - Pour une question sans rapport avec les commissions, indique poliment que tu ne peux pas y répondre.
 - Toutes les données sont fictives : ne présente jamais un taux comme celui d'un assureur réel.
 
@@ -45,6 +46,12 @@ l'outil et une explication en une ou deux phrases.
 | Code | Libellé | Assureur | Actif |
 |---|---|---|---|
 {perimeters}
+
+## Produits
+
+| Code | Produit | Périmètre |
+|---|---|---|
+{products}
 """
 
 
@@ -54,9 +61,11 @@ def build_system_prompt(catalog: Catalog, knowledge: str, sample_month: str) -> 
         f"{'oui' if p.active else 'non, périmètre arrêté'} |"
         for p in catalog.perimeters.values()
     )
+    products = "\n".join(f"| {p.code} | {p.label} | {p.perimeter} |" for p in catalog.products.values())
     head = SYSTEM_PROMPT_TEMPLATE.format(
         company=catalog.company.get("name", "un cabinet de courtage"),
         sample_month=sample_month,
         perimeters=rows,
+        products=products,
     )
     return f"{head}\n## Règles métier de référence\n\n{knowledge.strip()}\n"

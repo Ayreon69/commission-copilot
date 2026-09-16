@@ -4,6 +4,11 @@ import pytest
 from conftest import SEF_SIMULATION
 
 
+def test_home_redirects_to_interactive_documentation(client):
+    response = client.get("/", follow_redirects=False)
+    assert (response.status_code, response.headers["location"]) == (307, "/docs")
+
+
 def test_health_reports_chat_disabled_without_key(client):
     assert client.get("/api/health").json() == {"status": "ok", "chat_enabled": False, "model": None}
 

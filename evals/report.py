@@ -47,9 +47,9 @@ def render(runs: list[dict[str, Any]]) -> str:
     lines += [
         "## Synthèse",
         "",
-        "| Modèle | Questions réussies | Vérifications | Montants sans source | Erreurs d'infrastructure "
-        "| Latence médiane | Appels au modèle | Date |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Modèle | Questions réussies | Vérifications | Montants sans source | Produits ou règles inexistants "
+        "| Erreurs d'infrastructure | Latence médiane | Appels au modèle | Date |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for run in runs:
         s = run["summary"]
@@ -57,7 +57,8 @@ def render(runs: list[dict[str, Any]]) -> str:
         latency = f"{s['median_latency_s']:.1f} s" if s["median_latency_s"] is not None else "—"
         lines.append(
             f"| `{model}` | {_ratio(s['passed'], s['evaluated'])} | {_ratio(s['checks_passed'], s['checks_total'])} "
-            f"| {s['unverified_amounts']} | {s['errors']} | {latency} | {run['llm_calls']} | {run['date'][:10]} |"
+            f"| {s['unverified_amounts']} | {s.get('unknown_products', 0) + s.get('unknown_rules', 0)} "
+            f"| {s['errors']} | {latency} | {run['llm_calls']} | {run['date'][:10]} |"
         )
 
     lines += ["", "## Par catégorie", "", "| Catégorie | " + " | ".join(f"`{r['model']}`" for r in runs) + " |",

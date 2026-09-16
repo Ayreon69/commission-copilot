@@ -8,14 +8,14 @@ from __future__ import annotations
 from commission_engine import Catalog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from .assistant.agent import Assistant
 from .assistant.llm import FallbackLLM, LLMClient, LLMError, OpenAICompatibleClient, QuotaExceededError
 from .assistant.prompt import build_system_prompt
 from .assistant.tools import Toolbox
 from .config import Settings
-from .routes import router
+from .routes import QUOTA_MESSAGE, UNAVAILABLE_MESSAGE, router
 from .services import CommissionService, InvalidRequestError, NotFoundError
 
 
@@ -52,6 +52,10 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     app.state.assistant = assistant
     app.include_router(router)
 
+    @app.get("/", include_in_schema=False)
+    def _home() -> RedirectResponse:
+        return RedirectResponse("/docs")
+
     @app.exception_handler(NotFoundError)
     async def _not_found(_: Request, exc: NotFoundError) -> JSONResponse:
         return JSONResponse(status_code=404, content={"detail": str(exc)})
@@ -62,15 +66,10 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
 
     @app.exception_handler(QuotaExceededError)
     async def _quota_exceeded(_: Request, exc: QuotaExceededError) -> JSONResponse:
-        return JSONResponse(status_code=429, content={
-            "detail": "Le quota gratuit de la démonstration est atteint. Réessayez dans quelques minutes, "
-                      "ou demain si le quota journalier est épuisé."
-        })
+        return JSONResponse(status_code=429, content={"detail": QUOTA_MESSAGE})
 
     @app.exception_handler(LLMError)
     async def _llm_unavailable(_: Request, exc: LLMError) -> JSONResponse:
-        return JSONResponse(status_code=502, content={
-            "detail": "Le modèle de langage est momentanément indisponible. Réessayez dans quelques instants."
-        })
+        return JSONResponse(status_code=502, content={"detail": UNAVAILABLE_MESSAGE})
 
     return app

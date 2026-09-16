@@ -125,6 +125,10 @@ def evaluate(case: EvalCase, answer: AssistantAnswer) -> list[Check]:
 
     checks.append(Check("tous les montants ont une source", not answer.unverified_amounts,
                         f"montants sans source : {', '.join(answer.unverified_amounts)}"))
+    checks.append(Check("aucun produit inexistant", not answer.unknown_products,
+                        f"produits inexistants : {', '.join(answer.unknown_products)}"))
+    checks.append(Check("aucune règle inexistante", not answer.unknown_rules,
+                        f"règles inexistantes : {', '.join(answer.unknown_rules)}"))
     return checks
 
 

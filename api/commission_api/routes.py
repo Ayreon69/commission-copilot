@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request, status
+import json
+from collections.abc import Iterator
+from dataclasses import asdict
+from typing import Any
 
-from .assistant.agent import Assistant
+from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
+
+from .assistant.agent import Assistant, AssistantAnswer, Completed, TextDelta, ToolFinished, ToolStarted, ToolTrace
+from .assistant.llm import LLMError, QuotaExceededError
 from .schemas import (
     CalculationOut,
     ChatRequest,
     ChatResponse,
+    CitationOut,
     HealthOut,
     PerimeterDetailsOut,
     PerimeterSummaryOut,
@@ -18,11 +26,32 @@ from .schemas import (
 )
 from .services import CommissionService
 
+QUOTA_MESSAGE = ("Le quota gratuit de la démonstration est atteint. Réessayez dans quelques minutes, "
+                 "ou demain si le quota journalier est épuisé.")
+UNAVAILABLE_MESSAGE = "Le modèle de langage est momentanément indisponible. Réessayez dans quelques instants."
+NO_KEY_MESSAGE = "Assistant indisponible : la variable LLM_API_KEY n'est pas configurée."
+
+STREAM_DESCRIPTION = """Flux Server-Sent Events. Événements, dans l'ordre où ils surviennent :
+
+- `delta` `{"text"}` : texte généré. Le texte qui précède des appels d'outils n'est pas la réponse finale.
+- `tool_call` `{"name", "arguments"}` : un outil va être exécuté.
+- `tool_result` : trace de l'appel (même format que `tool_calls` de `/api/chat`).
+- `done` : réponse complète, au même format que `/api/chat`.
+- `error` `{"status", "detail"}` : échec du modèle (429 quota épuisé, 502 indisponible) ; le flux s'arrête.
+"""
+
 router = APIRouter(prefix="/api")
 
 
 def _service(request: Request) -> CommissionService:
     return request.app.state.service
+
+
+def _assistant(request: Request) -> Assistant:
+    assistant: Assistant | None = request.app.state.assistant
+    if assistant is None:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, NO_KEY_MESSAGE)
+    return assistant
 
 
 @router.get("/health", response_model=HealthOut, tags=["système"])
@@ -53,15 +82,50 @@ def get_sample_contract(perimeter: str, contract_id: str, request: Request) -> S
 
 @router.post("/chat", response_model=ChatResponse, tags=["assistant"])
 def chat(body: ChatRequest, request: Request) -> ChatResponse:
-    assistant: Assistant | None = request.app.state.assistant
-    if assistant is None:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
-                            "Assistant indisponible : la variable LLM_API_KEY n'est pas configurée.")
-    answer = assistant.answer(body.messages)
+    return chat_response(_assistant(request).answer(body.messages))
+
+
+@router.post("/chat/stream", tags=["assistant"], response_class=StreamingResponse,
+             responses={200: {"content": {"text/event-stream": {}}, "description": STREAM_DESCRIPTION}})
+def chat_stream(body: ChatRequest, request: Request) -> StreamingResponse:
+    assistant = _assistant(request)
+    return StreamingResponse(_stream_events(assistant, body), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+def _stream_events(assistant: Assistant, body: ChatRequest) -> Iterator[str]:
+    try:
+        for event in assistant.events(body.messages):
+            match event:
+                case TextDelta(text=text):
+                    yield _sse("delta", {"text": text})
+                case ToolStarted(name=name, arguments=arguments):
+                    yield _sse("tool_call", {"name": name, "arguments": arguments})
+                case ToolFinished(trace=trace):
+                    yield _sse("tool_result", _trace_out(trace).model_dump(mode="json"))
+                case Completed(answer=answer):
+                    yield _sse("done", chat_response(answer).model_dump(mode="json"))
+    except QuotaExceededError:
+        yield _sse("error", {"status": 429, "detail": QUOTA_MESSAGE})
+    except LLMError:
+        yield _sse("error", {"status": 502, "detail": UNAVAILABLE_MESSAGE})
+
+
+def _sse(event: str, data: dict[str, Any]) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def _trace_out(trace: ToolTrace) -> ToolCallTrace:
+    return ToolCallTrace(name=trace.name, arguments=trace.arguments, result=trace.result, ok=trace.ok)
+
+
+def chat_response(answer: AssistantAnswer) -> ChatResponse:
     return ChatResponse(
         answer=answer.content,
-        tool_calls=[ToolCallTrace(name=t.name, arguments=t.arguments, result=t.result, ok=t.ok)
-                    for t in answer.tool_calls],
+        tool_calls=[_trace_out(trace) for trace in answer.tool_calls],
+        citations=[CitationOut(**asdict(citation)) for citation in answer.citations],
         unverified_amounts=list(answer.unverified_amounts),
+        unknown_rules=list(answer.unknown_rules),
+        unknown_products=list(answer.unknown_products),
         model=answer.model,
     )

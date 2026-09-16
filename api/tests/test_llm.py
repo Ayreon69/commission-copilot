@@ -6,7 +6,7 @@ import httpx
 import openai
 import pytest
 from conftest import FakeLLM
-from openai.types.chat import ChatCompletion
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
 from commission_api.assistant.llm import (
     FallbackLLM,
@@ -15,6 +15,7 @@ from commission_api.assistant.llm import (
     ModelUnavailableError,
     OpenAICompatibleClient,
     QuotaExceededError,
+    TextChunk,
 )
 
 REQUEST = httpx.Request("POST", "https://llm.example.test/chat/completions")
@@ -106,6 +107,87 @@ def test_definitive_errors_are_not_retryable():
     with pytest.raises(LLMError) as raised:
         client.complete([], [])
     assert not isinstance(raised.value, QuotaExceededError | ModelUnavailableError)
+
+
+def chunk(delta, finish_reason=None):
+    return ChatCompletionChunk.model_validate({
+        "id": "flux-1", "object": "chat.completion.chunk", "created": 0, "model": "gemini-test",
+        "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}],
+    })
+
+
+def test_stream_yields_text_fragments_then_full_reply():
+    client, received = client_returning([chunk({"role": "assistant", "content": "Bon"}), chunk({"content": "jour"}),
+                                         chunk({}, "stop")])
+    items = list(client.stream([], []))
+
+    assert items[:-1] == [TextChunk("Bon"), TextChunk("jour")]
+    assert (items[-1].content, items[-1].tool_calls) == ("Bonjour", ())
+    assert received["stream"] is True
+
+
+def test_stream_reassembles_tool_call_fragments():
+    first = {"tool_calls": [{
+        "index": 0, "id": "abc123XYZ", "type": "function",
+        "function": {"name": "simulate_contract", "arguments": '{"perimeter": '},
+        "extra_content": {"google": {"thought_signature": "c2lnbmF0dXJl"}},
+    }]}
+    second = {"tool_calls": [{"index": 0, "function": {"arguments": '"SANTE_INDIV"}'}}]}
+    client, _ = client_returning([chunk(first), chunk(second), chunk({}, "tool_calls")])
+
+    reply = list(client.stream([], [{"type": "function"}]))[-1]
+
+    assert reply.tool_calls[0].arguments == {"perimeter": "SANTE_INDIV"}
+    raw_call = reply.raw_message["tool_calls"][0]
+    assert raw_call["function"] == {"name": "simulate_contract", "arguments": '{"perimeter": "SANTE_INDIV"}'}
+    assert raw_call["extra_content"] == {"google": {"thought_signature": "c2lnbmF0dXJl"}}
+    assert "content" not in reply.raw_message
+
+
+def test_stream_errors_during_iteration_are_translated():
+    def broken():
+        yield chunk({"content": "Début"})
+        raise openai.APIConnectionError(request=REQUEST)
+
+    client, _ = client_returning(broken())
+    with pytest.raises(ModelUnavailableError):
+        list(client.stream([], []))
+
+
+class StreamingFake:
+    def __init__(self, model, error_before=None, error_after=None):
+        self.model = model
+        self.error_before = error_before
+        self.error_after = error_after
+
+    def complete(self, messages, tools):
+        raise AssertionError("le streaming doit être utilisé")
+
+    def stream(self, messages, tools):
+        if self.error_before:
+            raise self.error_before
+        yield TextChunk("Bonjour")
+        if self.error_after:
+            raise self.error_after
+        yield LLMReply("Bonjour", model=self.model)
+
+
+def test_stream_falls_back_before_the_first_fragment():
+    llm = FallbackLLM([StreamingFake("flash-lite", error_before=ModelUnavailableError("surcharge")),
+                       StreamingFake("flash")])
+    assert list(llm.stream([], []))[-1].model == "flash"
+
+
+def test_stream_cannot_fall_back_once_text_was_sent():
+    llm = FallbackLLM([StreamingFake("flash-lite", error_after=ModelUnavailableError("coupure")),
+                       StreamingFake("flash")])
+    with pytest.raises(ModelUnavailableError, match="coupure"):
+        list(llm.stream([], []))
+
+
+def test_clients_without_streaming_are_wrapped():
+    llm = FallbackLLM([FakeLLM(LLMReply("Réponse complète"))])
+    assert list(llm.stream([], [])) == [TextChunk("Réponse complète"), LLMReply("Réponse complète", model="fake-model")]
 
 
 class ExhaustedLLM:

@@ -4,6 +4,7 @@ import pytest
 from conftest import SEF_SIMULATION, FakeLLM
 
 from commission_api.assistant.agent import Assistant
+from commission_api.assistant.guard import Citation
 from commission_api.assistant.llm import LLMReply, ToolCall
 from commission_api.assistant.tools import Toolbox
 from commission_api.schemas import ChatMessage
@@ -58,6 +59,32 @@ def test_provider_message_is_sent_back_unchanged(toolbox):
 
     assert llm.calls[1]["messages"][-2] == raw
     assert answer.model == "flash-lite"
+
+
+def test_events_describe_the_whole_exchange(toolbox):
+    llm = FakeLLM(simulate_call(), LLMReply("Reprise totale (R-RP1) de −1 200,00 €."))
+    assistant = Assistant(llm, toolbox, "prompt système", KNOWLEDGE)
+
+    events = list(assistant.events([ChatMessage(role="user", content="Combien est repris ?")]))
+
+    assert [type(event).__name__ for event in events] == ["ToolStarted", "ToolFinished", "TextDelta", "Completed"]
+    assert events[0].name == "simulate_contract" and events[1].trace.ok
+    answer = events[-1].answer
+    assert answer.citations == (Citation("R-RP1", "Reprise totale d'un contrat sans effet", True, True),)
+    assert (answer.unknown_rules, answer.unknown_products) == ((), ())
+
+
+def test_rule_applied_but_not_cited_is_still_listed(toolbox):
+    llm = FakeLLM(simulate_call(), LLMReply("La reprise est de −1 200,00 €."))
+    citation = ask(llm, toolbox, "?").citations[0]
+    assert (citation.rule_id, citation.in_answer, citation.from_calculation) == ("R-RP1", False, True)
+
+
+def test_invented_rule_and_product_are_reported(toolbox):
+    llm = FakeLLM(LLMReply("Selon la règle R-P9, Verdance Essentiel est traité comme Nordale Santé Confort."))
+    answer = ask(llm, toolbox, "?")
+    assert answer.unknown_rules == ("R-P9",)
+    assert answer.unknown_products == ("Verdance Essentiel",)
 
 
 def test_amount_without_source_is_flagged(toolbox):

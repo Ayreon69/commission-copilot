@@ -8,4 +8,5 @@ def test_system_prompt_contains_rules_perimeters_and_knowledge(service):
     assert "| SANTE_INDIV | Santé individuelle | Nordale Assurances | oui |" in prompt
     assert "| OBSEQUES | Obsèques | Mutuelle Verdance | non, périmètre arrêté |" in prompt
     assert "Mois de calcul par défaut : 2026-03" in prompt
+    assert "| VA-COMPAGNON-REPRIS | Verdance Compagnon (portefeuille repris) | ANIMAUX |" in prompt
     assert prompt.rstrip().endswith("Contenu des règles métier {avec accolades}")
