@@ -28,7 +28,11 @@ export function ContractTimeline({ subscriptionDate, effectiveDate, endDate, mon
   const anniversary = Date.UTC(new Date(effective).getUTCFullYear() + 1, new Date(effective).getUTCMonth(), new Date(effective).getUTCDate());
   const start = Math.min(subscription, effective) - 12 * DAY;
   const finish = Math.max(end ?? 0, monthEnd, anniversary) + 12 * DAY;
-  const position = (time: number) => `${((time - start) / (finish - start)) * 100}%`;
+  const ratio = (time: number) => (time - start) / (finish - start);
+  const position = (time: number) => `${ratio(time) * 100}%`;
+  // Près des bords, le libellé s'aligne sur le repère au lieu d'être centré, pour ne pas sortir de la frise.
+  const anchor = (time: number) =>
+    ratio(time) < 0.15 ? "left-0 -translate-x-1.5 text-left" : ratio(time) > 0.85 ? "right-0 translate-x-1.5 text-right" : "left-1/2 -translate-x-1/2 text-center";
   const coveredEnd = end ?? monthEnd;
 
   const markers = [
@@ -48,7 +52,7 @@ export function ContractTimeline({ subscriptionDate, effectiveDate, endDate, mon
           title="Période couverte"
         />
         <div
-          className="absolute top-[18%] bottom-[18%] border-x border-dashed border-vermilion bg-vermilion-soft/60"
+          className="absolute top-[36%] bottom-[36%] border-x border-dashed border-vermilion bg-vermilion-soft/60"
           style={{ left: position(monthStart), width: `calc(${position(monthEnd)} - ${position(monthStart)})` }}
           title={`Mois de calcul : ${formatMonth(month)}`}
         />
@@ -60,9 +64,9 @@ export function ContractTimeline({ subscriptionDate, effectiveDate, endDate, mon
           >
             <span className="absolute left-1/2 block h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-card" />
             <span
-              className={`absolute left-1/2 -translate-x-1/2 text-center font-mono text-[10px] leading-tight whitespace-nowrap text-ink-soft ${
-                marker.below ? "top-3" : "bottom-3"
-              }`}
+              className={`absolute z-10 bg-card px-0.5 font-mono text-[10px] leading-tight whitespace-nowrap text-ink-soft ${anchor(
+                marker.time,
+              )} ${marker.below ? "top-3" : "bottom-3"}`}
             >
               {marker.label}
               {marker.date && <span className="block text-ink-faint">{formatDate(marker.date)}</span>}

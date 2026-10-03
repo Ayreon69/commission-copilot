@@ -26,7 +26,7 @@ export function CommissionLines({ lines, exclusions, compact = false }: Commissi
                 {COMMISSION_LABELS[line.commission_type] ?? line.commission_type}
               </span>
               <span className="mx-1.5 text-rule">/</span>
-              {line.rule_label} <span className="font-mono text-[11px] text-ink-faint">{line.rule_id}</span>
+              {line.rule_label} <span className="font-mono text-[11px] whitespace-nowrap text-ink-faint">{line.rule_id}</span>
             </p>
             <p className={`num font-mono font-semibold ${compact ? "text-base" : "text-lg"} ${TONE_TEXT[toneOf(line.amount)]}`}>
               {line.amount_display}

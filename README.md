@@ -10,6 +10,17 @@ fait appel au moteur dès qu'il faut un chiffre.
 
 > Toutes les données sont fictives : cabinet, assureurs, produits, taux et contrats. Voir [docs/DONNEES_FICTIVES.md](docs/DONNEES_FICTIVES.md).
 
+![Assistant : réponse expliquée et panneau « Sous le capot » avec le calcul du moteur, la règle appliquée et les contrôles](docs/images/assistant.webp)
+
+<details>
+<summary>Simulateur et version mobile</summary>
+
+![Simulateur : cas « Taux négocié », bordereau de résultat à 336,00 €](docs/images/simulateur.webp)
+
+![Version mobile : réponse de l'assistant, panneau « Sous le capot » et bordereau du simulateur](docs/images/mobile.webp)
+
+</details>
+
 ## Le problème
 
 Dans un cabinet de courtage, la commission d'un contrat dépend de dizaines de règles : précompte versé d'avance,

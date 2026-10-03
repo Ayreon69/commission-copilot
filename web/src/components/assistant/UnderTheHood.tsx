@@ -14,10 +14,10 @@ export function UnderTheHood({ turn }: { turn?: AssistantTurn }) {
     >
       <div className="perforated shrink-0 bg-card" aria-hidden />
       <div className="flex-1 overflow-y-auto bg-card px-5 pb-8 sm:px-7">
-        <header className="flex items-baseline justify-between gap-3 border-b-2 border-ink pt-3 pb-2">
-          <h2 className="font-display text-3xl">Sous le capot</h2>
+        <header className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b-2 border-ink pt-3 pb-2">
+          <h2 className="font-display text-[1.75rem] whitespace-nowrap sm:text-3xl">Sous le capot</h2>
           {turn?.response && (
-            <p className="num font-mono text-[11px] text-ink-soft">
+            <p className="num font-mono text-[11px] whitespace-nowrap text-ink-soft">
               {turn.response.model}
               {turn.durationMs !== undefined && ` · ${(turn.durationMs / 1000).toFixed(1)} s`}
             </p>
@@ -164,7 +164,7 @@ function StepEntry({ step, index }: { step: ToolStep; index: number }) {
           ))}
         </div>
       )}
-      <div className="mt-3 ml-6">
+      <div className="mt-3 sm:ml-6">
         {step.trace && !step.trace.ok && (
           <p className="text-[13px] text-vermilion">{String(result?.error ?? "Erreur")}</p>
         )}
@@ -182,39 +182,42 @@ function ContractHistory({ result }: { result: Record<string, unknown> }) {
     [String(result.month), result.current_records as ContractRecordOut[]],
   ];
   return (
-    <table className="num mb-3 w-full font-mono text-[11.5px]">
-      <thead>
-        <tr className="text-left text-ink-faint">
-          <th className="pb-1 font-normal">Mois</th>
-          <th className="pb-1 font-normal">État</th>
-          <th className="pb-1 font-normal">Effet</th>
-          <th className="pb-1 font-normal">Fin</th>
-          <th className="pb-1 text-right font-normal">Prime</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(([month, records]) =>
-          records.length === 0 ? (
-            <tr key={month} className="border-t border-rule">
-              <td className="py-1">{month}</td>
-              <td colSpan={4} className="py-1 text-ink-faint">
-                absent du bordereau
-              </td>
-            </tr>
-          ) : (
-            records.map((record, i) => (
-              <tr key={`${month}-${i}`} className="border-t border-rule">
+    // Sur mobile, le tableau défile horizontalement plutôt que de coller ses colonnes.
+    <div className="mb-3 overflow-x-auto">
+      <table className="num w-full font-mono text-[10.5px] whitespace-nowrap sm:text-[11.5px] [&_td]:pr-2 [&_th]:pr-2 sm:[&_td]:pr-3 sm:[&_th]:pr-3 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
+        <thead>
+          <tr className="text-left text-ink-faint">
+            <th className="pb-1 font-normal">Mois</th>
+            <th className="pb-1 font-normal">État</th>
+            <th className="pb-1 font-normal">Effet</th>
+            <th className="pb-1 font-normal">Fin</th>
+            <th className="pb-1 text-right font-normal">Prime</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([month, records]) =>
+            records.length === 0 ? (
+              <tr key={month} className="border-t border-rule">
                 <td className="py-1">{month}</td>
-                <td className="py-1">{record.state}</td>
-                <td className="py-1">{formatDate(record.effective_date)}</td>
-                <td className="py-1">{formatDate(record.end_date)}</td>
-                <td className="py-1 text-right">{formatEuros(record.annual_premium)}</td>
+                <td colSpan={4} className="py-1 text-ink-faint">
+                  absent du bordereau
+                </td>
               </tr>
-            ))
-          ),
-        )}
-      </tbody>
-    </table>
+            ) : (
+              records.map((record, i) => (
+                <tr key={`${month}-${i}`} className="border-t border-rule">
+                  <td className="py-1">{month}</td>
+                  <td className="py-1">{record.state}</td>
+                  <td className="py-1">{formatDate(record.effective_date)}</td>
+                  <td className="py-1">{formatDate(record.end_date)}</td>
+                  <td className="py-1 text-right">{formatEuros(record.annual_premium)}</td>
+                </tr>
+              ))
+            ),
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
